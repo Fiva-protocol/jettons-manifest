@@ -43,39 +43,30 @@ export class MasterOrder implements Contract {
         });
     }
 
-    async sendMintOrderContract(
+    async sendCreateTonJettonOrder(
         provider: ContractProvider,
         via: Sender,
         opts: {
             value: bigint;
-            amount: bigint;
             queryId: number;
-            fromAddress: Address;
-            fromAmount: number;
+            fromAmount: bigint;
             toAddress: Address;
             toAmount: number;
         },
     ) {
-        await provider.internal(via, {
-            value: opts.value,
+        const result = await provider.internal(via, {
+            value: opts.value + opts.fromAmount,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-                .storeUint(0x318f361, 32)
+                .storeUint(0x76fd6f67, 32) // create_ton_order
                 .storeUint(opts.queryId, 64)
+                .storeCoins(opts.fromAmount)
                 .storeAddress(opts.toAddress)
-                .storeCoins(opts.amount)
-                .storeRef(
-                    beginCell()
-                        .storeUint(0xc1c6ebf9, 64)
-                        .storeUint(opts.queryId, 64)
-                        .storeAddress(opts.fromAddress)
-                        .storeCoins(opts.fromAmount)
-                        .storeAddress(opts.toAddress)
-                        .storeCoins(opts.toAmount)
-                        .endCell(),
-                )
+                .storeCoins(opts.toAmount)
                 .endCell(),
         });
+
+        return result;
     }
 
     async getWalletAddress(provider: ContractProvider, address: Address) {

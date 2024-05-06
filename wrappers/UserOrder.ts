@@ -19,11 +19,18 @@ export type UserOrderConfig = {
 };
 
 export type OrderData = {
-    fromAddress: Address;
+    orderType: number;
+    fromAddress: Address | null;
     fromAmount: bigint;
-    toAddress: Address;
+    toAddress: Address | null;
     toAmount: bigint;
 };
+
+export enum OrderType {
+    JETTON_JETTON = 0,
+    JETTON_TON = 1,
+    TON_JETTON = 2,
+}
 
 export function userOrderConfigToCell(config: UserOrderConfig): Cell {
     return beginCell()
@@ -43,11 +50,7 @@ export class UserOrder implements Contract {
         return new UserOrder(address);
     }
 
-    static createFromConfig(
-        config: UserOrderConfig,
-        code: Cell,
-        workchain = 0,
-    ) {
+    static createFromConfig(config: UserOrderConfig, code: Cell, workchain = 0) {
         const data = userOrderConfigToCell(config);
         const init = { code, data };
         return new UserOrder(contractAddress(workchain, init), init);
@@ -61,19 +64,12 @@ export class UserOrder implements Contract {
         });
     }
 
-    async getOrders(
-        provider: ContractProvider,
-    ): Promise<Dictionary<bigint, OrderData>> {
+    async getOrders(provider: ContractProvider): Promise<Dictionary<bigint, OrderData>> {
         let { stack } = await provider.get('get_orders_data', []);
         let orders: Dictionary<bigint, OrderData> = Dictionary.empty();
         const orders_cell = stack.readCellOpt();
         if (orders_cell) {
-            orders = orders_cell
-                ?.beginParse()
-                .loadDictDirect(
-                    Dictionary.Keys.BigUint(256),
-                    orderDataSerializer,
-                );
+            orders = orders_cell?.beginParse().loadDictDirect(Dictionary.Keys.BigUint(256), orderDataSerializer);
         }
         return orders;
     }
@@ -82,6 +78,7 @@ export class UserOrder implements Contract {
 const orderDataSerializer = {
     serialize: (src: OrderData, builder: Builder) => {
         const val = beginCell()
+            .storeUint(src.orderType, 8)
             .storeAddress(src.fromAddress)
             .storeUint(src.fromAmount, 64)
             .storeAddress(src.toAddress)
@@ -91,10 +88,11 @@ const orderDataSerializer = {
     },
     parse: (src: Slice): OrderData => {
         const val = src.loadRef().beginParse();
-        const fromAddress = val.loadAddress();
+        const orderType = val.loadUint(8);
+        const fromAddress = orderType != OrderType.TON_JETTON ? val.loadAddress() : null;
         const fromAmount = BigInt(val.loadUint(64));
-        const toAddress = val.loadAddress();
+        const toAddress = orderType != OrderType.JETTON_TON ? val.loadAddress() : null;
         const toAmount = BigInt(val.loadUint(64));
-        return { fromAddress, fromAmount, toAddress, toAmount };
+        return { orderType, fromAddress, fromAmount, toAddress, toAmount };
     },
 };

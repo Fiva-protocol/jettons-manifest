@@ -1,9 +1,10 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, Cell, beginCell, toNano } from '@ton/core';
+import { Address, Cell, Dictionary, beginCell, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { JettonMinter } from '../wrappers/JettonMinter';
 import { JettonWallet } from '../wrappers/JettonWallet';
 import { MasterOrder } from '../wrappers/MasterOrder';
+import { OrderType, UserOrder } from '../wrappers/UserOrder';
 
 export async function deployJettonWithWallet(
     blockchain: Blockchain,
@@ -112,4 +113,14 @@ export async function createOrderPosition(
 export async function assertJettonBalanceEqual(blockchain: Blockchain, jettonAddress: Address, equalTo: bigint) {
     const jettonWallet = blockchain.openContract(JettonWallet.createFromAddress(jettonAddress));
     expect(await jettonWallet.getJettonBalance()).toEqual(equalTo);
+}
+
+export async function getOrderID(userOrder: SandboxContract<UserOrder>, orderType: OrderType): Promise<bigint | null> {
+    const ordersDict = await userOrder.getOrders();
+    for (var orderId of ordersDict.keys()) {
+        if (ordersDict.get(orderId)!.orderType === orderType) {
+            return orderId;
+        }
+    }
+    return null;
 }

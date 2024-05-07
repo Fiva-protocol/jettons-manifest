@@ -64,6 +64,28 @@ export class UserOrder implements Contract {
         });
     }
 
+    async sendExecuteJettonTonOrder(
+        provider: ContractProvider,
+        via: Sender,
+        opts: {
+            value: bigint;
+            queryId: number;
+            orderId: bigint;
+        },
+    ) {
+        const result = await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(0x3b016c81, 32) // execute_order
+                .storeUint(opts.queryId, 64)
+                .storeUint(opts.orderId, 256)
+                .endCell(),
+        });
+
+        return result;
+    }
+
     async getOrders(provider: ContractProvider): Promise<Dictionary<bigint, OrderData>> {
         let { stack } = await provider.get('get_orders_data', []);
         let orders: Dictionary<bigint, OrderData> = Dictionary.empty();
@@ -80,9 +102,9 @@ const orderDataSerializer = {
         const val = beginCell()
             .storeUint(src.orderType, 8)
             .storeAddress(src.fromAddress)
-            .storeUint(src.fromAmount, 64)
+            .storeCoins(src.fromAmount)
             .storeAddress(src.toAddress)
-            .storeUint(src.toAmount, 64)
+            .storeCoins(src.toAmount)
             .endCell();
         builder.storeRef(val);
     },
@@ -90,9 +112,9 @@ const orderDataSerializer = {
         const val = src.loadRef().beginParse();
         const orderType = val.loadUint(8);
         const fromAddress = orderType != OrderType.TON_JETTON ? val.loadAddress() : null;
-        const fromAmount = BigInt(val.loadUint(64));
+        const fromAmount = BigInt(val.loadCoins());
         const toAddress = orderType != OrderType.JETTON_TON ? val.loadAddress() : null;
-        const toAmount = BigInt(val.loadUint(64));
+        const toAmount = BigInt(val.loadCoins());
         return { orderType, fromAddress, fromAmount, toAddress, toAmount };
     },
 };

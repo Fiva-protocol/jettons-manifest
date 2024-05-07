@@ -7,7 +7,12 @@ import { JettonMinter } from '../wrappers/JettonMinter';
 import { JettonWallet } from '../wrappers/JettonWallet';
 import { MasterOrder } from '../wrappers/MasterOrder';
 import { OrderType, UserOrder } from '../wrappers/UserOrder';
-import { assertJettonBalanceEqual, createOrderPosition, deployJettonWithWallet, setupMasterOrder } from './helpers';
+import {
+    assertJettonBalanceEqual,
+    createJettonOrderPosition,
+    deployJettonWithWallet,
+    setupMasterOrder,
+} from './helpers';
 
 describe('MasterOrder', () => {
     let masterOrderCode: Cell;
@@ -67,7 +72,7 @@ describe('MasterOrder', () => {
     });
 
     it('mint UserOrder contract with jetton-jetton position', async () => {
-        const result = await createOrderPosition(
+        const result = await createJettonOrderPosition(
             creator,
             masterOrder,
             jetton1.jettonWallet,
@@ -135,20 +140,7 @@ describe('MasterOrder', () => {
         const user_order_address = await masterOrder.getWalletAddress(creator.address);
         const user_order_jetton2_address = await jetton2.jettonMinter.getWalletAddress(user_order_address);
         const user_order_jetton1_address = await jetton1.jettonMinter.getWalletAddress(user_order_address);
-
-        await jetton1.jettonWallet.sendTransfer(creator.getSender(), {
-            value: toNano('0.4'),
-            toAddress: masterOrder.address,
-            queryId: 2,
-            jettonAmount: 10n,
-            fwdAmount: toNano('0.3'),
-            fwdPayload: beginCell()
-                .storeUint(0xc1c6ebf9, 32) // op code - create_order
-                .storeUint(222, 64) // query id
-                .storeAddress(user_order_jetton2_address)
-                .storeUint(20n, 64)
-                .endCell(),
-        });
+        await createJettonOrderPosition(creator, masterOrder, jetton1.jettonWallet, 10n, jetton2.jettonMinter, 20n);
 
         const user_order = blockchain.openContract(UserOrder.createFromAddress(user_order_address));
         const orders = await user_order.getOrders();
@@ -196,8 +188,7 @@ describe('MasterOrder', () => {
     it('create a new ton-jetton order', async () => {
         const user_order_address = await masterOrder.getWalletAddress(creator.address);
         const user_order_jetton2_address = await jetton2.jettonMinter.getWalletAddress(user_order_address);
-
-        const result = await masterOrder.sendCreateTonJettonOrder(creator.getSender(), {
+        await masterOrder.sendCreateTonJettonOrder(creator.getSender(), {
             value: toNano('0.2'),
             queryId: 123,
             fromAmount: toNano('10'),
@@ -214,5 +205,103 @@ describe('MasterOrder', () => {
         expect(orders?.values()[0].fromAmount).toEqual(toNano('10'));
         expect(orders?.values()[0].toAddress!.toString()).toEqual(user_order_jetton2_address.toString());
         expect(orders?.values()[0].toAmount).toEqual(20n);
+    });
+
+    it('mint UserOrder contract with jetton-ton position', async () => {
+        const result = await jetton1.jettonWallet.sendTransfer(creator.getSender(), {
+            value: toNano('0.3'),
+            toAddress: masterOrder.address,
+            queryId: 123,
+            jettonAmount: 10n,
+            fwdAmount: toNano('0.2'),
+            fwdPayload: beginCell()
+                .storeUint(0xc1c6ebf9, 32) // op code - create_order
+                .storeUint(123, 64) // query id
+                .storeUint(OrderType.JETTON_TON, 8)
+                .storeCoins(toNano(20))
+                .endCell(),
+        });
+
+        // User -> User Jetton1 Wallet
+        expect(result.transactions).toHaveTransaction({
+            from: creator.address,
+            to: jetton1.jettonWallet.address,
+            deploy: false,
+            success: true,
+        });
+
+        const jetton_wallet_master_order = await jetton1.jettonMinter.getWalletAddress(masterOrder.address);
+        // User Jetton1 Wallet -> Master Order Jetton1 Wallet
+        expect(result.transactions).toHaveTransaction({
+            from: jetton1.jettonWallet.address,
+            to: jetton_wallet_master_order,
+            deploy: true,
+            success: true,
+        });
+
+        // Master Order Jetton1 Wallet -> Master Order
+        expect(result.transactions).toHaveTransaction({
+            from: jetton_wallet_master_order,
+            to: masterOrder.address,
+            deploy: false,
+            success: true,
+        });
+
+        const user_order_address = await masterOrder.getWalletAddress(creator.address);
+        // Master Order -> User Order
+        expect(result.transactions).toHaveTransaction({
+            from: masterOrder.address,
+            to: user_order_address,
+            deploy: true,
+            success: true,
+        });
+
+        // Master Order -> Master Order Jetton1 Wallet
+        expect(result.transactions).toHaveTransaction({
+            from: masterOrder.address,
+            to: jetton_wallet_master_order,
+            deploy: false,
+            success: true,
+        });
+
+        const jetton_wallet_user_order = await jetton1.jettonMinter.getWalletAddress(user_order_address);
+        // Master Order Jetton1 Wallet -> User Order Jetton1 Wallet
+        expect(result.transactions).toHaveTransaction({
+            from: jetton_wallet_master_order,
+            to: jetton_wallet_user_order,
+            deploy: true,
+            success: true,
+        });
+
+        // Jettons are in User Order Wallet
+        await assertJettonBalanceEqual(blockchain, jetton_wallet_user_order, 10n);
+    });
+
+    it('create a new jetton-ton order', async () => {
+        const user_order_address = await masterOrder.getWalletAddress(creator.address);
+        const user_order_jetton1_address = await jetton1.jettonMinter.getWalletAddress(user_order_address);
+        await jetton1.jettonWallet.sendTransfer(creator.getSender(), {
+            value: toNano('0.3'),
+            toAddress: masterOrder.address,
+            queryId: 123,
+            jettonAmount: 10n,
+            fwdAmount: toNano('0.2'),
+            fwdPayload: beginCell()
+                .storeUint(0xc1c6ebf9, 32) // op code - create_order
+                .storeUint(123, 64) // query id
+                .storeUint(OrderType.JETTON_TON, 8)
+                .storeCoins(toNano(20))
+                .endCell(),
+        });
+
+        const user_order = blockchain.openContract(UserOrder.createFromAddress(user_order_address));
+        const orders = await user_order.getOrders();
+
+        expect(orders?.keys().length).toEqual(1);
+        expect(orders?.values()[0].orderType).toEqual(OrderType.JETTON_TON);
+        expect(orders?.values()[0].fromAddress!.toString()).toEqual(user_order_jetton1_address.toString());
+        expect(orders?.values()[0].fromAmount).toEqual(10n);
+        expect(orders?.values()[0].toAddress).toBeNull();
+        expect(orders?.values()[0].toAmount).toEqual(toNano('20'));
     });
 });

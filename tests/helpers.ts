@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, Cell, Dictionary, beginCell, toNano } from '@ton/core';
+import { Address, Cell, beginCell, toNano } from '@ton/core';
 import '@ton/test-utils';
 import { JettonMinter } from '../wrappers/JettonMinter';
 import { JettonWallet } from '../wrappers/JettonWallet';
@@ -82,7 +82,7 @@ export async function setupMasterOrder(
     return masterOrder;
 }
 
-export async function createOrderPosition(
+export async function createJettonOrderPosition(
     creator: SandboxContract<TreasuryContract>,
     masterOrder: SandboxContract<MasterOrder>,
     fromJettonWallet: SandboxContract<JettonWallet>,
@@ -102,8 +102,33 @@ export async function createOrderPosition(
         fwdPayload: beginCell()
             .storeUint(0xc1c6ebf9, 32) // op code - create_order
             .storeUint(111, 64) // query id
+            .storeUint(OrderType.JETTON_JETTON, 8)
             .storeAddress(user_order_jetton_address)
-            .storeUint(toAmount, 64)
+            .storeCoins(toAmount)
+            .endCell(),
+    });
+
+    return result;
+}
+
+export async function createJettonTonOrderPosition(
+    creator: SandboxContract<TreasuryContract>,
+    masterOrder: SandboxContract<MasterOrder>,
+    fromJettonWallet: SandboxContract<JettonWallet>,
+    fromAmount: bigint,
+    toAmount: bigint,
+) {
+    const result = await fromJettonWallet.sendTransfer(creator.getSender(), {
+        value: toNano('0.3'),
+        toAddress: masterOrder.address,
+        queryId: 123,
+        jettonAmount: fromAmount,
+        fwdAmount: toNano('0.2'),
+        fwdPayload: beginCell()
+            .storeUint(0xc1c6ebf9, 32) // op code - create_order
+            .storeUint(123, 64) // query id
+            .storeUint(OrderType.JETTON_TON, 8)
+            .storeCoins(toAmount)
             .endCell(),
     });
 

@@ -1,37 +1,47 @@
-import { Address, toNano } from '@ton/core';
+import { Address, beginCell, toNano } from '@ton/core';
+import { NetworkProvider } from '@ton/blueprint';
+import dotenv from 'dotenv';
 import { MasterOrder } from '../wrappers/MasterOrder';
-import { NetworkProvider, sleep } from '@ton/blueprint';
 import { JettonMinter } from '../wrappers/JettonMinter';
+import { JettonWallet } from '../wrappers/JettonWallet';
+import { UserOrder } from '../wrappers/UserOrder';
+
+dotenv.config();
 
 export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
-    const address = Address.parse(args.length > 0 ? args[0] : await ui.input('Minter address'));
-    const fromJettonAddr = Address.parse(args.length > 1 ? args[1] : await ui.input('From jetton address'));
-    const fromJettonAmount = Address.parse(args.length > 2 ? args[2] : await ui.input('From jetton amount'));
-    const toJettonAddr = Address.parse(args.length > 3 ? args[3] : await ui.input('To jetton address'));
-    const toJettonAmount = Address.parse(args.length > 4 ? args[4] : await ui.input('To jetton amount'));
-
-    const masterOrder = provider.open(MasterOrder.createFromAddress(address));
-    const fromJetton = provider.open(JettonMinter.createFromAddress(fromJettonAddr));
-    const toJetton = provider.open(JettonMinter.createFromAddress(toJettonAddr));
+    const masterOrder = provider.open(
+        MasterOrder.createFromAddress(Address.parse(process.env.MASTER_ORDER_ADDRESS as string)),
+    );
+    const j1addr = Address.parse(process.env.JETTON1_CREATOR_WALLET!);
+    const j2addr = Address.parse(process.env.JETTON2!);
+    const userJetton1 = provider.open(JettonWallet.createFromAddress(j1addr));
+    const userJetton2 = provider.open(JettonMinter.createFromAddress(j2addr));
 
     const orderCreatorAddr = provider.sender().address as Address;
     const userOrderAddr = await masterOrder.getWalletAddress(orderCreatorAddr);
-    const userOrderToJettonAddr = await toJetton.getWalletAddress(userOrderAddr);
+    const userOrderJettonAddr2 = await userJetton2.getWalletAddress(userOrderAddr);
 
-    const result = await fromJetton.sendTransfer(creator.getSender(), {
+    await userJetton1.sendTransfer(provider.sender(), {
         value: toNano('0.3'),
         toAddress: masterOrder.address,
         queryId: 1,
-        jettonAmount: fromJettonAmount,
+        jettonAmount: toNano('10'),
         fwdAmount: toNano('0.2'),
         fwdPayload: beginCell()
             .storeUint(0xc1c6ebf9, 32) // op code - create_order
             .storeUint(123, 64) // query id
-            .storeAddress(userOrderToJettonAddr)
-            .storeUint(toJettonAmount, 64)
+            .storeUint(0, 8)
+            .storeAddress(userOrderJettonAddr2)
+            .storeUint(toNano('20'), 64)
             .endCell(),
     });
 
-    ui.write('Order created successfully!');
+    ui.write('Order created successfully!.');
+    ui.write(`Order address: ${userOrderAddr}`);
+
+    const userOrderContract = provider.open(UserOrder.createFromAddress(userOrderAddr));
+    const orders = await userOrderContract.getOrders();
+
+    ui.write(`Available orders: ${orders.keys()}`);
 }

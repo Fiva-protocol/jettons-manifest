@@ -76,6 +76,28 @@ const TON_JETTON = 2;
     save_data(owner, master_contract, orders);
 }
 
+() close_order (slice sender, int order_id, int query_id) impure {
+    (slice owner, slice master_contract, cell orders) = load_data();
+    throw_unless(403, equal_slices(sender, owner));
+
+    (cell order, int ok) = udict_get_ref?(orders, 256, order_id);
+    throw_unless(404, ok == -1);
+
+    slice order_cs = order.begin_parse();
+    int order_type = order_cs~load_uint(8);
+    slice order_from_address = (order_type != TON_JETTON) ? order_cs~load_msg_addr() : null();
+    int order_from_amount = order_cs~load_coins();
+
+    if (order_type == TON_JETTON) {
+        send_ton(sender, order_from_amount);
+    } else {
+        send_jettons(order_from_address, sender, order_from_amount, query_id);
+    }
+
+    orders~udict_delete?(256, order_id);
+    save_data(owner, master_contract, orders);
+}
+
 () execute_order (slice executor_address, slice ex_to_address, int ex_to_amount, int order_id, int query_id) impure {
     (slice owner, slice master_contract, cell orders) = load_data();
 
@@ -147,6 +169,13 @@ const TON_JETTON = 2;
 ;; ~strdump("user order. receive execute_ton_order");
         int order_id = in_msg_body~load_uint(256);
         execute_order(sender_address, sender_address, msg_value, order_id, query_id);
+        return ();
+    }
+
+    if (op == "close_order"c) {
+;; ~strdump("user order. receive close_order");
+        int order_id = in_msg_body~load_uint(256);
+        close_order(sender_address, order_id, query_id);
         return ();
     }
 

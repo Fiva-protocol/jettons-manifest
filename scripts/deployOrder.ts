@@ -12,7 +12,7 @@ export async function run(provider: NetworkProvider) {
             await compile('MasterOrder'),
         ),
     );
-    await masterOrder.sendDeploy(provider.sender(), toNano('0.05'));
+    await masterOrder.sendDeploy(provider.sender(), toNano('0.1'));
 
     await provider.waitForDeploy(masterOrder.address);
 

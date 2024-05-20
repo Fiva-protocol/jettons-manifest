@@ -86,6 +86,28 @@ export class UserOrder implements Contract {
         return result;
     }
 
+    async sendCloseOrder(
+        provider: ContractProvider,
+        via: Sender,
+        opts: {
+            value: bigint;
+            queryId: number;
+            orderId: bigint;
+        },
+    ) {
+        const result = await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(0xdf32c0c8, 32) // close_order
+                .storeUint(opts.queryId, 64)
+                .storeUint(opts.orderId, 256)
+                .endCell(),
+        });
+
+        return result;
+    }
+
     async getOrders(provider: ContractProvider): Promise<Dictionary<bigint, OrderData>> {
         let { stack } = await provider.get('get_orders_data', []);
         let orders: Dictionary<bigint, OrderData> = Dictionary.empty();

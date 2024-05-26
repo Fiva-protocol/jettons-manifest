@@ -14,7 +14,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
         MasterOrder.createFromAddress(Address.parse(process.env.MASTER_ORDER_ADDRESS as string)),
     );
     const j1addr = Address.parse(process.env.JETTON1_CREATOR_WALLET!);
-    const j2addr = Address.parse(process.env.JETTON2!);
+    const j2addr = Address.parse(process.env.JETTON3!);
     const userJetton1 = provider.open(JettonWallet.createFromAddress(j1addr));
     const userJetton2 = provider.open(JettonMinter.createFromAddress(j2addr));
 
@@ -23,17 +23,18 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const userOrderJettonAddr2 = await userJetton2.getWalletAddress(userOrderAddr);
 
     await userJetton1.sendTransfer(provider.sender(), {
-        value: toNano('0.3'),
+        value: toNano('0.5'),
         toAddress: masterOrder.address,
         queryId: 1,
         jettonAmount: toNano('10'),
-        fwdAmount: toNano('0.2'),
+        fwdAmount: toNano('0.4'),
         fwdPayload: beginCell()
             .storeUint(0xc1c6ebf9, 32) // op code - create_order
             .storeUint(123, 64) // query id
             .storeUint(0, 8)
             .storeAddress(userOrderJettonAddr2)
-            .storeUint(toNano('20'), 64)
+            .storeCoins(toNano('20'))
+            .storeAddress(j2addr)
             .endCell(),
     });
 

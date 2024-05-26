@@ -52,6 +52,7 @@ export class MasterOrder implements Contract {
             fromAmount: bigint;
             toAddress: Address;
             toAmount: number;
+            toMasterAddress: Address;
         },
     ) {
         const result = await provider.internal(via, {
@@ -63,6 +64,7 @@ export class MasterOrder implements Contract {
                 .storeCoins(opts.fromAmount)
                 .storeAddress(opts.toAddress)
                 .storeCoins(opts.toAmount)
+                .storeAddress(opts.toMasterAddress)
                 .endCell(),
         });
 

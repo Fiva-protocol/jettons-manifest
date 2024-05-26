@@ -37,7 +37,7 @@
     return to_contract_address;
 }
 
-() create_ton_order_with_mint(slice owner_address, cell user_order_code, int query_id, int from_amount, slice to_address, int to_amount) impure {
+() create_ton_order_with_mint(slice owner_address, cell user_order_code, int query_id, int from_amount, slice to_address, int to_amount, slice to_master_address) impure {
     cell state_init = calculate_user_order_state_init(owner_address, my_address(), user_order_code);
     slice to_contract_address = calculate_user_order_address(state_init);
 
@@ -53,6 +53,7 @@
             .store_coins(from_amount)
             .store_slice(to_address)
             .store_coins(to_amount)
+            .store_slice(to_master_address)
         .end_cell())
     .end_cell();
     send_raw_message(msg, 64);
@@ -104,8 +105,9 @@
         throw_unless(410, msg_value > from_amount + 10000000);
         slice to_address = in_msg_body~load_msg_addr();
         int to_amount = in_msg_body~load_coins();
+        slice to_master_address = in_msg_body~load_msg_addr();
 
-        create_ton_order_with_mint(sender_address, user_order_code, query_id, from_amount, to_address, to_amount);
+        create_ton_order_with_mint(sender_address, user_order_code, query_id, from_amount, to_address, to_amount, to_master_address);
         return ();
     }
 

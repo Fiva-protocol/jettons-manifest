@@ -151,6 +151,7 @@ describe('MasterOrder', () => {
         expect(orders?.values()[0].fromAmount).toEqual(10n);
         expect(orders?.values()[0].toAddress!.toString()).toEqual(user_order_jetton2_address.toString());
         expect(orders?.values()[0].toAmount).toEqual(20n);
+        expect(orders?.values()[0].toMasterAddress!.toString()).toEqual(jetton2.jettonMinter.address.toString());
     });
 
     it('mint UserOrder contract with ton-jetton position', async () => {
@@ -163,6 +164,7 @@ describe('MasterOrder', () => {
             fromAmount: toNano('10'),
             toAddress: user_order_jetton2_address,
             toAmount: 20,
+            toMasterAddress: jetton2.jettonMinter.address,
         });
 
         // User -> Master order
@@ -194,6 +196,7 @@ describe('MasterOrder', () => {
             fromAmount: toNano('10'),
             toAddress: user_order_jetton2_address,
             toAmount: 20,
+            toMasterAddress: jetton2.jettonMinter.address,
         });
 
         const user_order = blockchain.openContract(UserOrder.createFromAddress(user_order_address));
@@ -205,6 +208,7 @@ describe('MasterOrder', () => {
         expect(orders?.values()[0].fromAmount).toEqual(toNano('10'));
         expect(orders?.values()[0].toAddress!.toString()).toEqual(user_order_jetton2_address.toString());
         expect(orders?.values()[0].toAmount).toEqual(20n);
+        expect(orders?.values()[0].toMasterAddress!.toString()).toEqual(jetton2.jettonMinter.address.toString());
     });
 
     it('mint UserOrder contract with jetton-ton position', async () => {

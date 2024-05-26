@@ -226,6 +226,7 @@ describe('UserOrder', () => {
             fromAmount: toNano('10'),
             toAddress: user_order_jetton2_address,
             toAmount: 20,
+            toMasterAddress: jettonsExecutor[1].jettonMinter.address,
         });
         const orderId = await getOrderID(userOrder, OrderType.TON_JETTON);
         expect(orderId).not.toBeNull();
@@ -413,6 +414,7 @@ describe('UserOrder', () => {
             fromAmount: toNano('10'),
             toAddress: user_order_jetton2_address,
             toAmount: 20,
+            toMasterAddress: jettonsExecutor[1].jettonMinter.address,
         });
         const orderId = await getOrderID(userOrder, OrderType.TON_JETTON);
         expect(orderId).not.toBeNull();

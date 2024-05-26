@@ -105,6 +105,7 @@ export async function createJettonOrderPosition(
             .storeUint(OrderType.JETTON_JETTON, 8)
             .storeAddress(user_order_jetton_address)
             .storeCoins(toAmount)
+            .storeAddress(toJettonMinter.address)
             .endCell(),
     });
 

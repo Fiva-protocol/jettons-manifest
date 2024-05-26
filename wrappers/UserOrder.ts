@@ -24,6 +24,7 @@ export type OrderData = {
     fromAmount: bigint;
     toAddress: Address | null;
     toAmount: bigint;
+    toMasterAddress: Address | null;
 };
 
 export enum OrderType {
@@ -127,6 +128,7 @@ const orderDataSerializer = {
             .storeCoins(src.fromAmount)
             .storeAddress(src.toAddress)
             .storeCoins(src.toAmount)
+            .storeAddress(src.toMasterAddress)
             .endCell();
         builder.storeRef(val);
     },
@@ -137,6 +139,7 @@ const orderDataSerializer = {
         const fromAmount = BigInt(val.loadCoins());
         const toAddress = orderType != OrderType.JETTON_TON ? val.loadAddress() : null;
         const toAmount = BigInt(val.loadCoins());
-        return { orderType, fromAddress, fromAmount, toAddress, toAmount };
+        const toMasterAddress = orderType != OrderType.JETTON_TON ? val.loadAddress() : null;
+        return { orderType, fromAddress, fromAmount, toAddress, toAmount, toMasterAddress };
     },
 };

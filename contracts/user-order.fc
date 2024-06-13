@@ -161,7 +161,6 @@ const TON_JETTON = 2;
     int query_id = in_msg_body~load_uint(64);
 
     if (op == "create_ton_order"c) {
-;; ~strdump("user order. receive create_ton_order");
         int from_amount = in_msg_body~load_coins();
         slice to_jetton_addr = in_msg_body~load_msg_addr();
         int to_amount = in_msg_body~load_coins();
@@ -171,21 +170,18 @@ const TON_JETTON = 2;
     }
 
     if (op == "execute_ton_order"c) {
-;; ~strdump("user order. receive execute_ton_order");
         int order_id = in_msg_body~load_uint(256);
         execute_order(sender_address, sender_address, msg_value, order_id, query_id);
         return ();
     }
 
     if (op == "close_order"c) {
-;; ~strdump("user order. receive close_order");
         int order_id = in_msg_body~load_uint(256);
         close_order(sender_address, order_id, query_id);
         return ();
     }
 
     if (op == op::transfer_notification()) {
-;; ~strdump("user order. receive transfer notification");
         (int jetton_amount, slice from_address) = (in_msg_body~load_coins(), in_msg_body~load_msg_addr());
         cell fwd_msg = in_msg_body~load_ref();
         slice fwd_cs = fwd_msg.begin_parse();
@@ -193,7 +189,6 @@ const TON_JETTON = 2;
         int fwd_query_id = fwd_cs~load_uint(64);
 
         if (fwd_op == "create_order"c) {
-;; ~strdump("user order. create new order");
             int order_type = fwd_cs~load_uint(8);
             slice to_jetton_addr = order_type != JETTON_TON ? fwd_cs~load_msg_addr() : null();
             int to_amount = fwd_cs~load_coins();
@@ -202,7 +197,6 @@ const TON_JETTON = 2;
         }
 
         if (fwd_op == "execute_order"c) {
-;; ~strdump("user order. execute order");
             int order_id = fwd_cs~load_uint(256);
             execute_order(from_address, sender_address, jetton_amount, order_id, fwd_query_id);
         }

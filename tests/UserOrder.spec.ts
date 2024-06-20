@@ -134,7 +134,7 @@ describe('UserOrder', () => {
         });
 
         // Send jettons to creator and executor
-        // User Order -> User Order Jetton1 Wallet
+        // User Order -> User Order Jetton2 Wallet
         expect(result.transactions).toHaveTransaction({
             from: userOrder.address,
             to: jetton2_wallet_user_order,
@@ -142,7 +142,7 @@ describe('UserOrder', () => {
             success: true,
         });
         const jetton2_creator_wallet = await jettonsExecutor[0].jettonMinter.getWalletAddress(creator.address);
-        // User Order Jetton1 Wallet -> Creator Jetton1 Wallet
+        // User Order Jetton2 Wallet -> Creator Jetton2 Wallet
         expect(result.transactions).toHaveTransaction({
             from: jetton2_wallet_user_order,
             to: jetton2_creator_wallet,
@@ -151,7 +151,7 @@ describe('UserOrder', () => {
         });
 
         const jetton1_wallet_user_order = await jettonsCreator[0].jettonMinter.getWalletAddress(userOrder.address);
-        // User Order -> User Order Jetton2 Wallet
+        // User Order -> User Order Jetton1 Wallet
         expect(result.transactions).toHaveTransaction({
             from: userOrder.address,
             to: jetton1_wallet_user_order,
@@ -272,7 +272,7 @@ describe('UserOrder', () => {
         });
 
         // Send jettons to creator and ton executor
-        // User Order -> User Order Jetton1 Wallet
+        // User Order -> User Order Jetton2 Wallet
         expect(result.transactions).toHaveTransaction({
             from: userOrder.address,
             to: jetton2_wallet_user_order,
@@ -280,7 +280,7 @@ describe('UserOrder', () => {
             success: true,
         });
         const jetton2_creator_wallet = await jettonsExecutor[1].jettonMinter.getWalletAddress(creator.address);
-        // User Order Jetton1 Wallet -> Creator Jetton1 Wallet
+        // User Order Jetton2 Wallet -> Creator Jetton2 Wallet
         expect(result.transactions).toHaveTransaction({
             from: jetton2_wallet_user_order,
             to: jetton2_creator_wallet,
@@ -288,7 +288,7 @@ describe('UserOrder', () => {
             success: true,
         });
 
-        // User Order -> User Order Jetton2 Wallet
+        // User Order -> Executor Wallet
         expect(result.transactions).toHaveTransaction({
             from: userOrder.address,
             to: executor.address,
@@ -337,7 +337,7 @@ describe('UserOrder', () => {
         });
 
         const jetton1_wallet_user_order = await jettonsCreator[0].jettonMinter.getWalletAddress(userOrder.address);
-        // User Order -> User Order Jetton2 Wallet
+        // User Order -> User Order Jetton1 Wallet
         expect(result.transactions).toHaveTransaction({
             from: userOrder.address,
             to: jetton1_wallet_user_order,
@@ -345,7 +345,7 @@ describe('UserOrder', () => {
             success: true,
         });
         const jetton1_executor_wallet = await jettonsCreator[0].jettonMinter.getWalletAddress(executor.address);
-        // User Order Jetton1 Wallet -> Creator Jetton1 Wallet
+        // User Order Jetton1 Wallet -> Executor Jetton1 Wallet
         expect(result.transactions).toHaveTransaction({
             from: jetton1_wallet_user_order,
             to: jetton1_executor_wallet,

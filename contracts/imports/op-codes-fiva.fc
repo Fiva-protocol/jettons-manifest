@@ -1,0 +1,1 @@
+int op::change_index() asm "0xf8a7df5 PUSHINT";

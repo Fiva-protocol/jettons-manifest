@@ -121,34 +121,6 @@ impure inline {
      maturity, pool_value_in_ton, updated_index);
         return ();
     }
-    if (op == 11) { ;; mint YT
-        ;; message should have at least from_amount TONs + fwd fee
-        ;; throw_unless(410, msg_value > from_amount + 10000000);
-        slice to_address = in_msg_body~load_msg_addr();
-        int amount = in_msg_body~load_coins();
-        cell master_msg = in_msg_body~load_ref();
-        slice master_msg_cs = master_msg.begin_parse();
-        master_msg_cs~skip_bits(32 + 64); ;; op + query_id
-        int jetton_amount = master_msg_cs~load_coins();
-        slice master_address = master_msg_cs~load_msg_addr();
-            
-        cell msg = begin_cell()
-            .store_uint(21, 32)
-            .store_uint(query_id, 64)
-            .store_slice(to_address)
-            .store_coins(amount)
-            .store_ref(begin_cell()
-                .store_uint(0x178d4519, 32)
-                .store_uint(query_id, 64)
-                .store_coins(jetton_amount)
-                .store_slice(master_address)
-                .store_slice(master_address)
-                .store_coins(0)
-                .store_uint(0,1)
-            .end_cell())
-        .end_cell();
-        send_raw_message(msg, 64);
-    }
 
     if (op == 12) { ;; mint YT
         ;; message should have at least from_amount TONs + fwd fee

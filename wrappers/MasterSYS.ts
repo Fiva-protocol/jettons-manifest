@@ -71,18 +71,70 @@ export class MasterSYS implements Contract {
 
         return result;
     }
+  async sendMint(
+    provider: ContractProvider,
+    via: Sender,
+    opts: {
+        toAddress: Address;
+        jettonAmount: bigint;
+        amount: bigint;
+        queryId: number;
+        value: bigint;
+    },
+) {
+    const result = await provider.internal(via, {
+        value: opts.value,
+        sendMode: SendMode.PAY_GAS_SEPARATELY,
+        body: beginCell()
+            .storeUint(21, 32)
+            .storeUint(opts.queryId, 64)
+            .storeAddress(opts.toAddress)
+            .storeCoins(opts.amount)
+            .storeRef(
+                beginCell()
+                    .storeUint(0x178d4519, 32)
+                    .storeUint(opts.queryId, 64)
+                    .storeCoins(opts.jettonAmount)
+                    .storeAddress(this.address)
+                    .storeAddress(this.address)
+                    .storeCoins(0)
+                    .storeUint(0, 1)
+                    .endCell(),
+            )
+            .endCell(),
+    });
 
-    // async getWalletAddress(provider: ContractProvider, address: Address) {
-    //     const result = await provider.get('get_wallet_address', [
-    //         {
-    //             type: 'slice',
-    //             cell: beginCell().storeAddress(address).endCell(),
-    //         } as TupleItemSlice,
-    //     ]);
+    return result;
+}
 
-    //     return result.stack.readAddress();
-    // }
+async sendMintReq(
+    provider: ContractProvider,
+    via: Sender,
+    opts: {
+        YTAddress: Address;
+        toAddress: Address;
+        jettonAmount: bigint;
+        amount: bigint;
+        queryId: number;
+        value: bigint;
+    },
+) {
+    const result = await provider.internal(via, {
+        value: opts.value,
+        sendMode: SendMode.PAY_GAS_SEPARATELY,
+        body: beginCell()
+            .storeUint(12, 32)
+            .storeUint(opts.queryId, 64)
+            .storeAddress(opts.YTAddress)
+            .storeAddress(opts.toAddress)
+            .storeCoins(opts.amount)
+            .storeCoins(opts.jettonAmount)
+            .storeAddress(this.address)
+            .endCell(),
+    });
 
+    return result;
+}
     async getIndex(provider: ContractProvider) {
         const result = await provider.get('get_index',[]);
         return result.stack.readNumber();

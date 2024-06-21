@@ -7,10 +7,12 @@ import { OrderType, UserOrder } from '../wrappers/UserOrder';
 import { MasterSYS } from '../wrappers/MasterSYS';
 
 
-export async function setupMasterSYS(
+export async function setupMasterSYSAndYTJetton(
     blockchain: Blockchain,
     deployer: SandboxContract<TreasuryContract>,
     masterSYSCode: Cell,
+    jettonMinterCode: Cell,
+    jettonWalletCode: Cell,
 ) {
     const masterSYS = blockchain.openContract(
         MasterSYS.createFromConfig(
@@ -34,15 +36,49 @@ export async function setupMasterSYS(
         success: true,
     });
 
-    return masterSYS;
+    const randomSeed = Math.floor(Math.random() * 10000);
+    const jettonMinter = blockchain.openContract(
+        JettonMinter.createFromConfig(
+            {
+                adminAddress: masterSYS.address,
+                content: beginCell().storeUint(randomSeed, 256).endCell(),
+                jettonWalletCode: jettonWalletCode,
+            },
+            jettonMinterCode,
+        ),
+    );
+    let result_jetton = await jettonMinter.sendDeploy(deployer.getSender(), toNano('0.05'));
+
+    expect(result_jetton.transactions).toHaveTransaction({
+        from: deployer.address,
+        to: jettonMinter.address,
+        deploy: true,
+        success: true,
+    });
+
+    return {
+        masterSYS: masterSYS,
+        jettonMinter: jettonMinter,
+     };
+
+     
 }
 
-// export async function changeIndex(
-//     creator: SandboxContract<TreasuryContract>,
-//     masterSYS: SandboxContract<MasterSYS>,
+export async function assertJettonBalanceEqualFiva(blockchain: Blockchain, jettonAddress: Address, equalTo: bigint) {
+    const jettonWallet = blockchain.openContract(JettonWallet.createFromAddress(jettonAddress));
+    expect(await jettonWallet.getJettonBalance()).toEqual(equalTo);
+}
+
+// export async function createJettonOrderPosition(
+//     sender: SandboxContract<TreasuryContract>,
+//     masterOrder: SandboxContract<MasterOrder>,
 //     fromJettonWallet: SandboxContract<JettonWallet>,
 //     fromAmount: bigint,
+//     YTJetton: SandboxContract<JettonMinter>,
+//     toAmount: bigint,
 // ) {
+//     // const user_order_address = await masterOrder.getWalletAddress(creator.address);
+//     const sender_yt_jetton_address = await YTJetton.getWalletAddress(sender.address);
 
 //     const result = await fromJettonWallet.sendTransfer(creator.getSender(), {
 //         value: toNano('0.3'),
@@ -51,7 +87,7 @@ export async function setupMasterSYS(
 //         jettonAmount: fromAmount,
 //         fwdAmount: toNano('0.2'),
 //         fwdPayload: beginCell()
-//             .storeUint(10, 32) // op code - create_order
+//             .storeUint(0xc1c6ebf9, 32) // op code - create_order
 //             .storeUint(111, 64) // query id
 //             .storeUint(OrderType.JETTON_JETTON, 8)
 //             .storeAddress(user_order_jetton_address)

@@ -111,7 +111,7 @@ impure inline {
     (slice admin_address, int tston_total_balance, int yt_total_balance, int pt_total_balance,
     int maturity, int pool_value_in_ton, int index_tston_ton) = load_data();
 
-    if (op == 10) {
+    if (op == 10) { ;;change index
         ;; check that sender is admin
         ;; throw_unless(401, equal_slices(sender_address, admin_address));
         ;; get updated index
@@ -121,17 +121,67 @@ impure inline {
      maturity, pool_value_in_ton, updated_index);
         return ();
     }
-    if (op == "create_ton_order"c) {
+    if (op == 11) { ;; mint YT
         ;; message should have at least from_amount TONs + fwd fee
         ;; throw_unless(410, msg_value > from_amount + 10000000);
         slice to_address = in_msg_body~load_msg_addr();
-        int to_amount = in_msg_body~load_coins();
-        slice to_master_address = in_msg_body~load_msg_addr();
-
-        create_ton_order_with_mint(sender_address, user_order_code, query_id, from_amount, to_address, to_amount, to_master_address);
-        return ();
+        int amount = in_msg_body~load_coins();
+        cell master_msg = in_msg_body~load_ref();
+        slice master_msg_cs = master_msg.begin_parse();
+        master_msg_cs~skip_bits(32 + 64); ;; op + query_id
+        int jetton_amount = master_msg_cs~load_coins();
+        slice master_address = master_msg_cs~load_msg_addr();
+            
+        cell msg = begin_cell()
+            .store_uint(21, 32)
+            .store_uint(query_id, 64)
+            .store_slice(to_address)
+            .store_coins(amount)
+            .store_ref(begin_cell()
+                .store_uint(0x178d4519, 32)
+                .store_uint(query_id, 64)
+                .store_coins(jetton_amount)
+                .store_slice(master_address)
+                .store_slice(master_address)
+                .store_coins(0)
+                .store_uint(0,1)
+            .end_cell())
+        .end_cell();
+        send_raw_message(msg, 64);
     }
 
+    if (op == 12) { ;; mint YT
+        ;; message should have at least from_amount TONs + fwd fee
+        ;; throw_unless(410, msg_value > from_amount + 10000000);
+        slice yt_address = in_msg_body~load_msg_addr();
+        slice to_address = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_coins();
+        int jetton_amount = in_msg_body~load_coins();
+        slice master_address = in_msg_body~load_msg_addr();
+        var msg_body = begin_cell()
+            .store_uint(21, 32)
+            .store_uint(query_id, 64)
+            .store_slice(to_address)
+            .store_coins(amount)
+            .store_ref(begin_cell()
+                .store_uint(0x178d4519, 32)
+                .store_uint(query_id, 64)
+                .store_coins(jetton_amount)
+                .store_slice(master_address)
+                .store_slice(master_address)
+                .store_coins(0)
+                .store_uint(0,1)
+            .end_cell())
+        .end_cell();
+        var msg = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(yt_address) 
+            .store_coins(amount) ;; is it correct?
+            .store_uint(1, 107)
+            .store_ref(msg_body)
+            .end_cell();
+        send_raw_message(msg, 64); ;; revert on errors
+    }
     ;; if (op == op::transfer_notification()) {
     ;;     int jetton_amount = in_msg_body~load_coins();
     ;;     slice to_address = in_msg_body~load_msg_addr();

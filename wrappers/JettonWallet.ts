@@ -97,6 +97,8 @@ export class JettonWallet implements Contract {
             owner: stack.readAddress(),
             minter: stack.readAddress(),
             wallet_code: stack.readCell(),
+            index: stack.readNumber(),
+            interest: stack.readBigNumber(),
         };
     }
 

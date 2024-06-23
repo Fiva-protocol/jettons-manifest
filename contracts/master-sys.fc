@@ -106,6 +106,11 @@ impure inline {
     }
     
     slice sender_address = cs~load_msg_addr();
+    cs~load_msg_addr(); ;; skip dst
+    cs~load_coins(); ;; skip value
+    cs~skip_bits(1); ;; skip extracurrency collection
+    cs~load_coins(); ;; skip ihr_fee
+    int fwd_fee = cs~load_coins(); 
     int op = in_msg_body~load_uint(32);
     int query_id = in_msg_body~load_uint(64);
     (slice admin_address, int tston_total_balance, int yt_total_balance, int pt_total_balance,
@@ -129,7 +134,6 @@ impure inline {
         slice to_address = in_msg_body~load_msg_addr();
         int amount = in_msg_body~load_coins();
         int jetton_amount = in_msg_body~load_coins();
-        slice master_address = in_msg_body~load_msg_addr();
         var msg_body = begin_cell()
             .store_uint(21, 32)
             .store_uint(query_id, 64)
@@ -139,10 +143,11 @@ impure inline {
                 .store_uint(0x178d4519, 32)
                 .store_uint(query_id, 64)
                 .store_coins(jetton_amount)
-                .store_slice(master_address)
-                .store_slice(master_address)
+                .store_slice(my_address())
+                .store_slice(my_address())
                 .store_coins(0)
                 .store_uint(0,1)
+                .store_uint(index_tston_ton,32)
             .end_cell())
         .end_cell();
         var msg = begin_cell()
@@ -154,6 +159,73 @@ impure inline {
             .end_cell();
         send_raw_message(msg, 64); ;; revert on errors
     }
+
+    if (op == 13) { ;; Claim rewards
+        ;; message should have at least from_amount TONs + fwd fee
+        ;; throw_unless(410, msg_value > from_amount + 10000000);
+        slice yt_address = in_msg_body~load_msg_addr();
+        slice to_address = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_coins();
+        ;; needed infromation for claiming rewards
+        cell master_msg = in_msg_body~load_ref();
+        slice master_msg_cs = master_msg.begin_parse();
+        slice master_address = master_msg_cs~load_msg_addr();
+        slice fiva_tston_address = master_msg_cs~load_msg_addr();
+        slice user_tston_address = master_msg_cs~load_msg_addr();
+        var msg_body = begin_cell()
+            .store_uint(16, 32) ;; change for opcode from master yt that will forward the message to the user yt wallet
+            .store_uint(query_id, 64)
+            .store_slice(to_address)
+            .store_coins(amount)
+            .store_ref(begin_cell()
+                .store_uint(14, 32) ;; opcode in yt jetton wallet for claiming interest
+                .store_uint(query_id, 64)
+                .store_uint(index_tston_ton,32) ;; should user sent new index or use latest availabe when making a call? 
+                .store_slice(master_address)
+                .store_slice(fiva_tston_address)
+                .store_slice(user_tston_address)
+                .store_coins(amount)
+                .end_cell())
+            .end_cell();
+        var msg = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(yt_address) 
+            .store_coins(amount) ;; is it correct?
+            .store_uint(0, 106)
+            .store_uint(1, 1)
+            .store_ref(msg_body)
+            .end_cell();
+        send_raw_message(msg, 64); ;; revert on errors
+    }
+
+
+    if (op == 15){ ;;withdraw rewards
+        slice master_tston_address = in_msg_body~load_msg_addr(); 
+        slice user_tston_address = in_msg_body~load_msg_addr(); 
+        int interest = in_msg_body~load_coins();
+        ;; to_address - jetton user adress
+        tston_total_balance -= interest;
+        var msg_body = begin_cell()
+            .store_uint(op::transfer(), 32)
+            .store_uint(query_id, 64)
+            .store_coins(interest)
+            .store_slice(user_tston_address)
+            .store_slice(user_tston_address)
+            .store_uint(0, 1)
+            .store_coins(0)
+            .store_uint(0, 1)
+            .end_cell();
+       var msg = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(master_tston_address)
+            .store_coins(50000000) ;; what is that? 
+            .store_uint(1, 107)
+            .store_ref(msg_body)
+            .end_cell();
+        send_raw_message(msg, 1); ;; revert on errors
+        save_data(admin_address,tston_total_balance,yt_total_balance,pt_total_balance,maturity,pool_value_in_ton,index_tston_ton);
+    }
+
     ;; if (op == op::transfer_notification()) {
     ;;     int jetton_amount = in_msg_body~load_coins();
     ;;     slice to_address = in_msg_body~load_msg_addr();

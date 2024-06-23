@@ -141,7 +141,27 @@
         return ();
     }
 
-    throw(0xffff);
+    if (op == 16) { ;; forward index informatin from Master SYS to the user YT jetton wallet
+        ;; throw_unless(74, equal_slices(sender_address, admin_address));
+        slice to_address = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_coins();
+        cell master_msg = in_msg_body~load_ref();
+        int amount_adjusted = amount - (3 * fwd_fee);
+
+        cell state_init = calculate_jetton_wallet_state_init(to_address, my_address(), jetton_wallet_code);
+        slice to_wallet_address = calculate_jetton_wallet_address(state_init);
+        var msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(to_wallet_address)
+                .store_coins(amount_adjusted)
+                .store_uint(0, 106)
+                .store_uint(1,1)
+                .store_ref(master_msg);
+        send_raw_message(msg.end_cell(), 64); ;; pay transfer fees separately, revert on errors
+            
+    }
+
+    ;; throw(0xffff);
 }
 
 (int, int, slice, cell, cell) get_jetton_data() method_id {

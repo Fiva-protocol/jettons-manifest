@@ -69,32 +69,52 @@ export async function assertJettonBalanceEqualFiva(blockchain: Blockchain, jetto
     expect(await jettonWallet.getJettonBalance()).toEqual(equalTo);
 }
 
-// export async function createJettonOrderPosition(
-//     sender: SandboxContract<TreasuryContract>,
-//     masterOrder: SandboxContract<MasterOrder>,
-//     fromJettonWallet: SandboxContract<JettonWallet>,
-//     fromAmount: bigint,
-//     YTJetton: SandboxContract<JettonMinter>,
-//     toAmount: bigint,
-// ) {
-//     // const user_order_address = await masterOrder.getWalletAddress(creator.address);
-//     const sender_yt_jetton_address = await YTJetton.getWalletAddress(sender.address);
+export async function deployJettonWithWalletFiva(
+    blockchain: Blockchain,
+    deployer: SandboxContract<TreasuryContract>,
+    jettonMinterCode: Cell,
+    jettonWalletCode: Cell,
+    sendTokensToAddr: Address,
+    jettonsAmount: bigint,
+) {
+    const randomSeed = Math.floor(Math.random() * 10000);
+    const jettonMinter = blockchain.openContract(
+        JettonMinter.createFromConfig(
+            {
+                adminAddress: deployer.address,
+                content: beginCell().storeUint(randomSeed, 256).endCell(),
+                jettonWalletCode: jettonWalletCode,
+            },
+            jettonMinterCode,
+        ),
+    );
+    let result = await jettonMinter.sendDeploy(deployer.getSender(), toNano('0.05'));
 
-//     const result = await fromJettonWallet.sendTransfer(creator.getSender(), {
-//         value: toNano('0.3'),
-//         toAddress: masterOrder.address,
-//         queryId: 1,
-//         jettonAmount: fromAmount,
-//         fwdAmount: toNano('0.2'),
-//         fwdPayload: beginCell()
-//             .storeUint(0xc1c6ebf9, 32) // op code - create_order
-//             .storeUint(111, 64) // query id
-//             .storeUint(OrderType.JETTON_JETTON, 8)
-//             .storeAddress(user_order_jetton_address)
-//             .storeCoins(toAmount)
-//             .storeAddress(toJettonMinter.address)
-//             .endCell(),
-//     });
+    expect(result.transactions).toHaveTransaction({
+        from: deployer.address,
+        to: jettonMinter.address,
+        deploy: true,
+        success: true,
+    });
 
-//     return result;
-// }
+    result = await jettonMinter.sendMint(deployer.getSender(), {
+        toAddress: sendTokensToAddr,
+        jettonAmount: jettonsAmount,
+        amount: toNano('0.05'),
+        queryId: Date.now(),
+        value: toNano('0.2'),
+    });
+    expect(result.transactions).toHaveTransaction({
+        from: deployer.address,
+        to: jettonMinter.address,
+        deploy: false,
+        success: true,
+    });
+
+    const creator_wallet_addr = await jettonMinter.getWalletAddress(sendTokensToAddr);
+    const walletJetton = blockchain.openContract(JettonWallet.createFromAddress(creator_wallet_addr));
+    return {
+        tstonMinter: jettonMinter,
+        tstonWallet: walletJetton,
+    };
+}

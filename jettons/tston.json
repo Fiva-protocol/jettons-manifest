@@ -1,6 +1,6 @@
 {
-    "name": "STON",
-    "symbol": "STON",
-    "image": "https://raw.githubusercontent.com/CryptonFi/jettons/master/img/ston.png",
-    "description": "STON jetton testnet"
+    "name": "tsTON",
+    "symbol": "tsTON",
+    "image": "https://github.com/Fiva-protocol/contracts-2/blob/main/jettons/RJjbHnrO_400x400.jpg",
+    "description": "tsTON jetton testnet"
 }

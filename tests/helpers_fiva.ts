@@ -37,7 +37,7 @@ export async function setupMasterSYSAndYTJetton(
     });
 
     const randomSeed = Math.floor(Math.random() * 10000);
-    const jettonMinter = blockchain.openContract(
+    const jettonMinterYT = blockchain.openContract(
         JettonMinter.createFromConfig(
             {
                 adminAddress: masterSYS.address,
@@ -47,18 +47,41 @@ export async function setupMasterSYSAndYTJetton(
             jettonMinterCode,
         ),
     );
-    let result_jetton = await jettonMinter.sendDeploy(deployer.getSender(), toNano('0.05'));
+    let result_jetton = await jettonMinterYT.sendDeploy(deployer.getSender(), toNano('0.05'));
 
     expect(result_jetton.transactions).toHaveTransaction({
         from: deployer.address,
-        to: jettonMinter.address,
+        to: jettonMinterYT.address,
+        deploy: true,
+        success: true,
+    });
+
+    //deploy pt token
+
+    const randomSeedpt = Math.floor(Math.random() * 2000);
+    const jettonMinterPT = blockchain.openContract(
+        JettonMinter.createFromConfig(
+            {
+                adminAddress: masterSYS.address,
+                content: beginCell().storeUint(randomSeedpt, 256).endCell(),
+                jettonWalletCode: jettonWalletCode,
+            },
+            jettonMinterCode,
+        ),
+    );
+    let result_jetton_pt = await jettonMinterPT.sendDeploy(deployer.getSender(), toNano('0.05'));
+
+    expect(result_jetton_pt.transactions).toHaveTransaction({
+        from: deployer.address,
+        to: jettonMinterPT.address,
         deploy: true,
         success: true,
     });
 
     return {
         masterSYS: masterSYS,
-        jettonMinter: jettonMinter,
+        jettonMinterYT: jettonMinterYT,
+        jettonMinterPT: jettonMinterPT,
      };
 
      

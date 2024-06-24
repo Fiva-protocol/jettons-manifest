@@ -12,7 +12,7 @@ export async function run(provider: NetworkProvider) {
                     pt_total_balance: 0n,
                     maturity: 365n,
                     pool_value_in_ton: 0n,
-                    index_tston_ton: 1000,
+                    index_tston_ton: 1350,
 
             },
             await compile('MasterSYS'),

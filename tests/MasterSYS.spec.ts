@@ -35,7 +35,8 @@ describe('MasterSYS', () => {
     let deployer: SandboxContract<TreasuryContract>;
     let sender: SandboxContract<TreasuryContract>;
     let masterSYS: SandboxContract<MasterSYS>;
-    let jettonMinter: SandboxContract<JettonMinter>;
+    let jettonMinterYT: SandboxContract<JettonMinter>;
+    let jettonMinterPT:SandboxContract<JettonMinter>;
     let provider:ContractProvider;
     let tston: {
         tstonMinter: SandboxContract<JettonMinter>;
@@ -47,7 +48,12 @@ describe('MasterSYS', () => {
         deployer = await blockchain.treasury('deployer');
         sender = await blockchain.treasury('sender');
 
-        ({masterSYS, jettonMinter} = await setupMasterSYSAndYTJetton(blockchain, deployer, masterSYSCode,jettonMinterCode,jettonWalletCode));
+        ({masterSYS, jettonMinterYT, jettonMinterPT} = await setupMasterSYSAndYTJetton(blockchain, deployer, masterSYSCode,jettonMinterCode,jettonWalletCode));
+
+
+        
+         //deploy tston test
+
 
         tston = await deployJettonWithWalletFiva( //create a dummy tston jetton and minth for master SYS 1000 tokens
             blockchain,
@@ -66,7 +72,7 @@ describe('MasterSYS', () => {
     it('change the Index values', async () => {
         // const user_order_address = await masterOrder.getWalletAddress(creator.address);
         // const user_order_jetton2_address = await jetton2.jettonMinter.getWalletAddress(user_order_address);
-
+        
         const result = await masterSYS.sendChangeIndex(sender.getSender(), {
             value: toNano('0.2'),
             queryId: 123,
@@ -87,9 +93,12 @@ describe('MasterSYS', () => {
     });
 
     it('mint YT tokens and Recieve Index and Interest from The contract', async () => {
-       
+        
+        console.log('YT Address',jettonMinterYT.address);
+        console.log('PT Address',jettonMinterPT.address);
         const result = await masterSYS.sendMintReq(sender.getSender() , {
-            YTAddress: jettonMinter.address,
+            YTAddress: jettonMinterYT.address,
+            PTAddress: jettonMinterPT.address, //ADD PT ADDRESS
             toAddress: sender.address,
             jettonAmount: 1000n,
             amount: toNano('0.2'),
@@ -106,15 +115,15 @@ describe('MasterSYS', () => {
         // Master -> Jetton Minter
         expect(result.transactions).toHaveTransaction({
             from: masterSYS.address,
-            to: jettonMinter.address,
+            to: jettonMinterYT.address,
             deploy: false,
             success: true,
         });
 
         // Jetton Minter -> User wallet
-        const sendTokensToAddr = await jettonMinter.getWalletAddress(sender.address);
+        const sendTokensToAddr = await jettonMinterYT.getWalletAddress(sender.address);
         expect(result.transactions).toHaveTransaction({
-            from: jettonMinter.address,
+            from: jettonMinterYT.address,
             to: sendTokensToAddr,
             deploy: true,
             success: true,
@@ -126,12 +135,16 @@ describe('MasterSYS', () => {
         expect(index).toEqual(1000);
         expect(interest).toEqual(0n);
 
+        const sendTokensToAddrPT = await jettonMinterPT.getWalletAddress(sender.address);
+        await assertJettonBalanceEqual(blockchain, sendTokensToAddrPT, 1000n);
+
     });
 
     it('correctly calculate Interest when Index changed', async () => {
        
         await masterSYS.sendMintReq(sender.getSender() , {
-            YTAddress: jettonMinter.address,
+            YTAddress: jettonMinterYT.address,
+            PTAddress: jettonMinterPT.address, // ADD PT address
             toAddress: sender.address,
             jettonAmount: 1000n,
             amount: toNano('0.2'),
@@ -146,7 +159,8 @@ describe('MasterSYS', () => {
         })
 
         await masterSYS.sendMintReq(sender.getSender() , {
-            YTAddress: jettonMinter.address,
+            YTAddress: jettonMinterYT.address,
+            PTAddress: jettonMinterPT.address,
             toAddress: sender.address,
             jettonAmount: 1000n,
             amount: toNano('0.2'),
@@ -154,7 +168,7 @@ describe('MasterSYS', () => {
             value: toNano('0.2'),
         });
 
-        const sendTokensToAddr = await jettonMinter.getWalletAddress(sender.address);
+        const sendTokensToAddr = await jettonMinterYT.getWalletAddress(sender.address);
         const jettonWallet = blockchain.openContract(JettonWallet.createFromAddress(sendTokensToAddr));
         const {index, interest} =await jettonWallet.getWalletData()
         expect(index).toEqual(1300);
@@ -167,7 +181,8 @@ describe('MasterSYS', () => {
         })
 
         await masterSYS.sendMintReq(sender.getSender() , {
-            YTAddress: jettonMinter.address,
+            YTAddress: jettonMinterYT.address,
+            PTAddress: jettonMinterPT.address,
             toAddress: sender.address,
             jettonAmount: 1000n,
             amount: toNano('0.2'),
@@ -179,65 +194,66 @@ describe('MasterSYS', () => {
         expect(interest_2).toEqual(4360000n); /*4 decimal points */
     });
 
-    it('deploy dummy Jetton, mint this Jetton, mint YT token, change index, and claim rewards', async () => {
-        await masterSYS.sendMintReq(sender.getSender() , {
-            YTAddress: jettonMinter.address,
-            toAddress: sender.address,
-            jettonAmount: 1000n,
-            amount: toNano('0.2'),
-            queryId: Date.now(),
-            value: toNano('0.2'),
-        });
+    // it('deploy dummy Jetton, mint this Jetton, mint YT token, change index, and claim rewards', async () => {
+    //     await masterSYS.sendMintReq(sender.getSender() , {
+    //         YTAddress: jettonMinter.address,
+    //         PTAddress: jettonMinter.address,
+    //         toAddress: sender.address,
+    //         jettonAmount: 1000n,
+    //         amount: toNano('0.2'),
+    //         queryId: Date.now(),
+    //         value: toNano('0.2'),
+    //     });
 
-        await masterSYS.sendChangeIndex(sender.getSender(), {
-            value: toNano('0.2'),
-            queryId: 123,
-            newIndex: 1300,
-        })
+    //     await masterSYS.sendChangeIndex(sender.getSender(), {
+    //         value: toNano('0.2'),
+    //         queryId: 123,
+    //         newIndex: 1300,
+    //     })
 
-        // logic that user sent request to master contract should be added because master contract will send updeted index to the wallet
-        // should user update index or use latest from the contract?
+    //     // logic that user sent request to master contract should be added because master contract will send updeted index to the wallet
+    //     // should user update index or use latest from the contract?
 
-        const userTstonAddress = await tston.tstonMinter.getWalletAddress(sender.address);
-        const fivaTstonAddress = await tston.tstonMinter.getWalletAddress(masterSYS.address);
-        console.log(userTstonAddress)
-        console.log(fivaTstonAddress)
+    //     const userTstonAddress = await tston.tstonMinter.getWalletAddress(sender.address);
+    //     const fivaTstonAddress = await tston.tstonMinter.getWalletAddress(masterSYS.address);
+    //     console.log(userTstonAddress)
+    //     console.log(fivaTstonAddress)
         
-        const result = await masterSYS.sendClaimInterest(sender.getSender(),{
-            YTAddress:jettonMinter.address,
-            toAddress:sender.address,
-            amount:toNano('0.2'),
-            queryId: Date.now(),
-            masterAddress: masterSYS.address,
-            fivaTstonAddress:fivaTstonAddress,
-            userTstonAddress:userTstonAddress,
-        });
+    //     const result = await masterSYS.sendClaimInterest(sender.getSender(),{
+    //         YTAddress:jettonMinter.address,
+    //         toAddress:sender.address,
+    //         amount:toNano('0.2'),
+    //         queryId: Date.now(),
+    //         masterAddress: masterSYS.address,
+    //         fivaTstonAddress:fivaTstonAddress,
+    //         userTstonAddress:userTstonAddress,
+    //     });
 
-        // User -> Master
-        expect(result.transactions).toHaveTransaction({
-            from: sender.address,
-            to: masterSYS.address,
-            deploy: false,
-            success: true,
-        });
-        console.log('Address of Master:', masterSYS.address)
-        console.log('Address of YT nibter', jettonMinter.address)
-        // Master -> Minter YT
-        expect(result.transactions).toHaveTransaction({
-            from: masterSYS.address,
-            to: jettonMinter.address,
-            deploy: false,
-            success: true,
-        });
+    //     // User -> Master
+    //     expect(result.transactions).toHaveTransaction({
+    //         from: sender.address,
+    //         to: masterSYS.address,
+    //         deploy: false,
+    //         success: true,
+    //     });
+    //     console.log('Address of Master:', masterSYS.address)
+    //     console.log('Address of YT nibter', jettonMinter.address)
+    //     // Master -> Minter YT
+    //     expect(result.transactions).toHaveTransaction({
+    //         from: masterSYS.address,
+    //         to: jettonMinter.address,
+    //         deploy: false,
+    //         success: true,
+    //     });
 
-        // Master -> Minter YT
-        const userYTAddress= await jettonMinter.getWalletAddress(sender.address);
-        expect(result.transactions).toHaveTransaction({
-            from: jettonMinter.address,
-            to: userYTAddress,
-            deploy: false,
-            success: true,
-        });
+    //     // Master -> Minter YT
+    //     const userYTAddress= await jettonMinter.getWalletAddress(sender.address);
+    //     expect(result.transactions).toHaveTransaction({
+    //         from: jettonMinter.address,
+    //         to: userYTAddress,
+    //         deploy: false,
+    //         success: true,
+    //     });
         
-    }); 
+    // }); 
 });

@@ -127,14 +127,15 @@ impure inline {
         return ();
     }
 
-    if (op == 12) { ;; mint YT
+    if (op == 12) { ;; mint YT and PT
         ;; message should have at least from_amount TONs + fwd fee
         ;; throw_unless(410, msg_value > from_amount + 10000000);
         slice yt_address = in_msg_body~load_msg_addr();
+        slice pt_address = in_msg_body~load_msg_addr();
         slice to_address = in_msg_body~load_msg_addr();
         int amount = in_msg_body~load_coins();
         int jetton_amount = in_msg_body~load_coins();
-        var msg_body = begin_cell()
+        var msg_body_yt = begin_cell() ;;mint YT
             .store_uint(21, 32)
             .store_uint(query_id, 64)
             .store_slice(to_address)
@@ -150,14 +151,39 @@ impure inline {
                 .store_uint(index_tston_ton,32)
             .end_cell())
         .end_cell();
-        var msg = begin_cell()
+        var msg_yt = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(yt_address) 
             .store_coins(amount) ;; is it correct?
             .store_uint(1, 107)
-            .store_ref(msg_body)
+            .store_ref(msg_body_yt)
             .end_cell();
-        send_raw_message(msg, 64); ;; revert on errors
+        send_raw_message(msg_yt, 64); ;; revert on errors
+
+        var msg_body_pt = begin_cell() ;;mint PT
+            .store_uint(21, 32)
+            .store_uint(query_id, 64)
+            .store_slice(to_address)
+            .store_coins(amount)
+            .store_ref(begin_cell()
+                .store_uint(0x178d4519, 32)
+                .store_uint(query_id, 64)
+                .store_coins(jetton_amount)
+                .store_slice(my_address())
+                .store_slice(my_address())
+                .store_coins(0)
+                .store_uint(0,1)
+                .store_uint(index_tston_ton,32)
+            .end_cell())
+        .end_cell();
+        var msg_pt = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(pt_address) 
+            .store_coins(amount) ;; is it correct?
+            .store_uint(1, 107)
+            .store_ref(msg_body_pt)
+            .end_cell();
+        send_raw_message(msg_pt, 64);
     }
 
     if (op == 13) { ;; Claim rewards

@@ -77,6 +77,7 @@ async sendMintReq(
     via: Sender,
     opts: {
         YTAddress: Address;
+        PTAddress:Address;
         toAddress: Address;
         jettonAmount: bigint;
         amount: bigint;
@@ -91,6 +92,7 @@ async sendMintReq(
             .storeUint(12, 32)
             .storeUint(opts.queryId, 64)
             .storeAddress(opts.YTAddress)
+            .storeAddress(opts.PTAddress)
             .storeAddress(opts.toAddress)
             .storeCoins(opts.amount)
             .storeCoins(opts.jettonAmount)

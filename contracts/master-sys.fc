@@ -139,7 +139,7 @@ impure inline {
             .store_uint(21, 32)
             .store_uint(query_id, 64)
             .store_slice(to_address)
-            .store_coins(amount)
+            .store_coins(10000000)
             .store_ref(begin_cell()
                 .store_uint(0x178d4519, 32)
                 .store_uint(query_id, 64)
@@ -154,7 +154,7 @@ impure inline {
         var msg_yt = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(yt_address) 
-            .store_coins(amount) ;; is it correct?
+            .store_coins(10000000) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_yt)
             .end_cell();
@@ -164,7 +164,7 @@ impure inline {
             .store_uint(21, 32)
             .store_uint(query_id, 64)
             .store_slice(to_address)
-            .store_coins(amount)
+            .store_coins(10000000)
             .store_ref(begin_cell()
                 .store_uint(0x178d4519, 32)
                 .store_uint(query_id, 64)
@@ -179,7 +179,7 @@ impure inline {
         var msg_pt = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(pt_address) 
-            .store_coins(amount) ;; is it correct?
+            .store_coins(10000000) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_pt)
             .end_cell();
@@ -202,7 +202,7 @@ impure inline {
             .store_uint(16, 32) ;; change for opcode from master yt that will forward the message to the user yt wallet
             .store_uint(query_id, 64)
             .store_slice(to_address)
-            .store_coins(amount)
+            .store_coins(10000000)
             .store_ref(begin_cell()
                 .store_uint(14, 32) ;; opcode in yt jetton wallet for claiming interest
                 .store_uint(query_id, 64)
@@ -216,7 +216,7 @@ impure inline {
         var msg = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(yt_address) 
-            .store_coins(amount) ;; is it correct?
+            .store_coins(10000000) ;; is it correct?
             .store_uint(0, 106)
             .store_uint(1, 1)
             .store_ref(msg_body)

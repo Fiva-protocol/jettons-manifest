@@ -1,4 +1,4 @@
-;; Jettons discoverable smart contract
+;; Principle token discoverable smart contract
 
 ;; storage scheme
 ;; storage#_ total_supply:Coins admin_address:MsgAddress content:^Cell jetton_wallet_code:^Cell = Storage;
@@ -10,25 +10,26 @@
 #include "imports/op-codes.fc";
 #include "imports/utils.fc";
 #include "imports/discovery-params.fc";
+
 #pragma version >=0.2.0;
 
 (int, slice, cell, cell) load_data() inline {
     slice ds = get_data().begin_parse();
     return (
-            ds~load_coins(), ;; total_supply
-            ds~load_msg_addr(), ;; admin_address
-            ds~load_ref(), ;; content
-            ds~load_ref() ;; jetton_wallet_code
+        ds~load_coins(), ;; total_supply
+        ds~load_msg_addr(), ;; admin_address
+        ds~load_ref(), ;; content
+        ds~load_ref() ;; jetton_wallet_code
     );
 }
 
 () save_data(int total_supply, slice admin_address, cell content, cell jetton_wallet_code) impure inline {
     set_data(begin_cell()
-            .store_coins(total_supply)
-            .store_slice(admin_address)
-            .store_ref(content)
-            .store_ref(jetton_wallet_code)
-            .end_cell()
+        .store_coins(total_supply)
+        .store_slice(admin_address)
+        .store_ref(content)
+        .store_ref(jetton_wallet_code)
+        .end_cell()
     );
 }
 
@@ -36,12 +37,13 @@
     cell state_init = calculate_jetton_wallet_state_init(to_address, my_address(), jetton_wallet_code);
     slice to_wallet_address = calculate_jetton_wallet_address(state_init);
     var msg = begin_cell()
-            .store_uint(0x18, 6)
-            .store_slice(to_wallet_address)
-            .store_coins(amount)
-            .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
-            .store_ref(state_init)
-            .store_ref(master_msg);
+        .store_uint(0x18, 6)
+        .store_slice(to_wallet_address)
+        .store_coins(amount)
+        .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+        .store_ref(state_init)
+        .store_ref(master_msg);
+
     send_raw_message(msg.end_cell(), 1); ;; pay transfer fees separately, revert on errors
 }
 
@@ -49,6 +51,7 @@
     if (in_msg_body.slice_empty?()) { ;; ignore empty messages
         return ();
     }
+
     slice cs = in_msg_full.begin_parse();
     int flags = cs~load_uint(4);
 
@@ -84,18 +87,18 @@
         int jetton_amount = in_msg_body~load_coins();
         slice from_address = in_msg_body~load_msg_addr();
         throw_unless(74,
-                equal_slices(calculate_user_jetton_wallet_address(from_address, my_address(), jetton_wallet_code), sender_address)
+            equal_slices(calculate_user_jetton_wallet_address(from_address, my_address(), jetton_wallet_code), sender_address)
         );
         save_data(total_supply - jetton_amount, admin_address, content, jetton_wallet_code);
         slice response_address = in_msg_body~load_msg_addr();
         if (response_address.preload_uint(2) != 0) {
             var msg = begin_cell()
-                    .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
-                    .store_slice(response_address)
-                    .store_coins(0)
-                    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                    .store_uint(op::excesses(), 32)
-                    .store_uint(query_id, 64);
+                .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+                .store_slice(response_address)
+                .store_coins(0)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_uint(op::excesses(), 32)
+                .store_uint(query_id, 64);
             send_raw_message(msg.end_cell(), 2 + 64);
         }
         return ();
@@ -108,16 +111,16 @@
         int include_address? = in_msg_body~load_uint(1);
 
         cell included_address = include_address?
-                ? begin_cell().store_slice(owner_address).end_cell()
-                : null();
+        ? begin_cell().store_slice(owner_address).end_cell()
+        : null();
 
         var msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(sender_address)
-                .store_coins(0)
-                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                .store_uint(op::take_wallet_address(), 32)
-                .store_uint(query_id, 64);
+            .store_uint(0x18, 6)
+            .store_slice(sender_address)
+            .store_coins(0)
+            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+            .store_uint(op::take_wallet_address(), 32)
+            .store_uint(query_id, 64);
 
         if (is_resolvable?(owner_address)) {
             msg = msg.store_slice(calculate_user_jetton_wallet_address(owner_address, my_address(), jetton_wallet_code));
@@ -141,27 +144,7 @@
         return ();
     }
 
-    if (op == 16) { ;; forward index informatin from Master SYS to the user YT jetton wallet
-        ;; throw_unless(74, equal_slices(sender_address, admin_address));
-        slice to_address = in_msg_body~load_msg_addr();
-        int amount = in_msg_body~load_coins();
-        cell master_msg = in_msg_body~load_ref();
-        int amount_adjusted = amount - (3 * fwd_fee);
-
-        cell state_init = calculate_jetton_wallet_state_init(to_address, my_address(), jetton_wallet_code);
-        slice to_wallet_address = calculate_jetton_wallet_address(state_init);
-        var msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(to_wallet_address)
-                .store_coins(amount_adjusted)
-                .store_uint(0, 106)
-                .store_uint(1,1)
-                .store_ref(master_msg);
-        send_raw_message(msg.end_cell(), 64); ;; pay transfer fees separately, revert on errors
-
-    }
-
-    ;; throw(0xffff);
+    throw(0xffff);
 }
 
 (int, int, slice, cell, cell) get_jetton_data() method_id {

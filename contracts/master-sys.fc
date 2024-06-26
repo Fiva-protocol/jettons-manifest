@@ -4,18 +4,19 @@
 #include "imports/stdlib.fc";
 ;; #include "imports/order_utils.fc";
 #include "imports/op-codes-fiva.fc";
+#include "imports/op-codes.fc";
 #pragma version >=0.2.0;
 
-(slice, int ,int,int,int,int,int) load_data() inline {
+(slice, int, int, int, int, int, int) load_data() inline {
     slice ds = get_data().begin_parse();
     return (
         ds~load_msg_addr(), ;; admin_address
         ;; ds~load_ref() ;; user_order_code
-        ds~load_coins(),;; tsTON balance
-        ds~load_coins(),;; YT tsTON balance
-        ds~load_coins(),;; PT tsTON balance
-        ds~load_coins(),;; Maturity
-        ds~load_coins(),;; ? assets in TON estimation
+        ds~load_coins(), ;; tsTON balance
+        ds~load_coins(), ;; YT tsTON balance
+        ds~load_coins(), ;; PT tsTON balance
+        ds~load_coins(), ;; Maturity
+        ds~load_coins(), ;; ? assets in TON estimation
         ds~load_uint(32);; ? Index TON/tsTON with 6 decimals
     );
 }
@@ -30,7 +31,7 @@ impure inline {
         .store_coins(pt_total_balance)
         .store_coins(maturity)
         .store_coins(pool_value_in_ton)
-        .store_uint(index_tston_ton,32)
+        .store_uint(index_tston_ton, 32)
         .end_cell()
     );
 }
@@ -95,39 +96,122 @@ impure inline {
 ;;     send_raw_message(msg, 64); ;; revert on errors
 ;; }
 
+() mint_principle_token(slice pt_addr, slice to_addr, int amount, int jetton_amount, int query_id, int index) impure inline {
+    var msg_body_yt = begin_cell()
+        .store_uint(op::mint(), 32)
+        .store_uint(query_id, 64)
+        .store_slice(to_addr)
+        .store_coins(amount)
+        .store_ref(begin_cell()
+            .store_uint(op::internal_transfer(), 32)
+            .store_uint(query_id, 64)
+            .store_coins(jetton_amount)
+            .store_slice(my_address())
+            .store_slice(my_address())
+            .store_coins(0)
+            .store_uint(0, 1)
+            .store_uint(index, 32)
+            .end_cell())
+        .end_cell();
+
+    var msg_yt = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(pt_addr)
+        .store_coins(amount) ;; is it correct?
+        .store_uint(1, 107)
+        .store_ref(msg_body_yt)
+        .end_cell();
+
+    send_raw_message(msg_yt, 64); ;; revert on errors
+}
+
+() mint_yield_token(slice yt_addr, slice to_addr, int amount, int jetton_amount, int query_id, int index) impure inline {
+    var msg_body_yt = begin_cell()
+        .store_uint(op::mint(), 32)
+        .store_uint(query_id, 64)
+        .store_slice(to_addr)
+        .store_coins(amount)
+        .store_ref(begin_cell()
+            .store_uint(op::internal_transfer(), 32)
+            .store_uint(query_id, 64)
+            .store_coins(jetton_amount)
+            .store_slice(my_address())
+            .store_slice(my_address())
+            .store_coins(0)
+            .store_uint(0, 1)
+            .store_uint(index, 32)
+            .end_cell())
+        .end_cell();
+
+    var msg_yt = begin_cell()
+        .store_uint(0x18, 6)
+        .store_slice(yt_addr)
+        .store_coins(amount) ;; is it correct?
+        .store_uint(1, 107)
+        .store_ref(msg_body_yt)
+        .end_cell();
+
+    send_raw_message(msg_yt, 64); ;; revert on errors
+}
+
 () recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
-    if (in_msg_body.slice_empty?()) { ;; ignore empty messages
+    if (in_msg_body.slice_empty?()) {
+        ;; ignore empty messages
         return ();
     }
     slice cs = in_msg_full.begin_parse();
     int flags = cs~load_uint(4);
-    if (flags & 1) { ;; ignore all bounced messages
+    if (flags & 1) {
+        ;; ignore all bounced messages
         return ();
     }
-    
+
     slice sender_address = cs~load_msg_addr();
     cs~load_msg_addr(); ;; skip dst
-    cs~load_coins(); ;; skip value
+    int amount = cs~load_coins(); ;; skip value
     cs~skip_bits(1); ;; skip extracurrency collection
     cs~load_coins(); ;; skip ihr_fee
-    int fwd_fee = cs~load_coins(); 
+    int fwd_fee = cs~load_coins();
     int op = in_msg_body~load_uint(32);
     int query_id = in_msg_body~load_uint(64);
     (slice admin_address, int tston_total_balance, int yt_total_balance, int pt_total_balance,
-    int maturity, int pool_value_in_ton, int index_tston_ton) = load_data();
+        int maturity, int pool_value_in_ton, int index_tston_ton) = load_data();
 
-    if (op == 10) { ;;change index
+    if (op == 10) {
+        ;;change index
         ;; check that sender is admin
         ;; throw_unless(401, equal_slices(sender_address, admin_address));
         ;; get updated index
         int updated_index = in_msg_body~load_uint(32);
         ;; save updated info 
         save_data(admin_address, tston_total_balance, yt_total_balance, pt_total_balance,
-     maturity, pool_value_in_ton, updated_index);
+            maturity, pool_value_in_ton, updated_index);
         return ();
     }
 
-    if (op == 12) { ;; mint YT and PT
+    if (op == op::transfer_notification()) {
+        ~dump(1234);
+        int jetton_amount = in_msg_body~load_coins();
+        slice to_addr = in_msg_body~load_msg_addr();
+
+        cell fwd_msg = in_msg_body~load_ref();
+        slice fwd_cs = fwd_msg.begin_parse();
+        int fwd_op = fwd_cs~load_uint(32);
+        int fwd_query_id = fwd_cs~load_uint(64);
+        (slice yt_addr, slice pt_addr) = (fwd_cs~load_msg_addr(), fwd_cs~load_msg_addr());
+
+        (_, _, _, _, _, _, int index_tston_ton) = load_data();
+
+        if (fwd_op == "supply"c) {
+            mint_principle_token(pt_addr, to_addr, amount, jetton_amount, fwd_query_id, index_tston_ton);
+            mint_yield_token(yt_addr, to_addr, amount, jetton_amount, fwd_query_id, index_tston_ton);
+        }
+
+        return ();
+    }
+
+    if (op == 12) {
+        ;; mint YT and PT
         ;; message should have at least from_amount TONs + fwd fee
         ;; throw_unless(410, msg_value > from_amount + 10000000);
         slice yt_address = in_msg_body~load_msg_addr();
@@ -147,13 +231,13 @@ impure inline {
                 .store_slice(my_address())
                 .store_slice(my_address())
                 .store_coins(0)
-                .store_uint(0,1)
-                .store_uint(index_tston_ton,32)
-            .end_cell())
-        .end_cell();
+                .store_uint(0, 1)
+                .store_uint(index_tston_ton, 32)
+                .end_cell())
+            .end_cell();
         var msg_yt = begin_cell()
             .store_uint(0x18, 6)
-            .store_slice(yt_address) 
+            .store_slice(yt_address)
             .store_coins(amount) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_yt)
@@ -172,13 +256,13 @@ impure inline {
                 .store_slice(my_address())
                 .store_slice(my_address())
                 .store_coins(0)
-                .store_uint(0,1)
-                .store_uint(index_tston_ton,32)
-            .end_cell())
-        .end_cell();
+                .store_uint(0, 1)
+                .store_uint(index_tston_ton, 32)
+                .end_cell())
+            .end_cell();
         var msg_pt = begin_cell()
             .store_uint(0x18, 6)
-            .store_slice(pt_address) 
+            .store_slice(pt_address)
             .store_coins(amount) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_pt)
@@ -186,7 +270,8 @@ impure inline {
         send_raw_message(msg_pt, 64);
     }
 
-    if (op == 13) { ;; Claim rewards
+    if (op == 13) {
+        ;; Claim rewards
         ;; message should have at least from_amount TONs + fwd fee
         ;; throw_unless(410, msg_value > from_amount + 10000000);
         slice yt_address = in_msg_body~load_msg_addr();
@@ -206,7 +291,7 @@ impure inline {
             .store_ref(begin_cell()
                 .store_uint(14, 32) ;; opcode in yt jetton wallet for claiming interest
                 .store_uint(query_id, 64)
-                .store_uint(index_tston_ton,32) ;; should user sent new index or use latest availabe when making a call? 
+                .store_uint(index_tston_ton, 32) ;; should user sent new index or use latest availabe when making a call?
                 .store_slice(master_address)
                 .store_slice(fiva_tston_address)
                 .store_slice(user_tston_address)
@@ -215,7 +300,7 @@ impure inline {
             .end_cell();
         var msg = begin_cell()
             .store_uint(0x18, 6)
-            .store_slice(yt_address) 
+            .store_slice(yt_address)
             .store_coins(10000000) ;; is it correct?
             .store_uint(0, 106)
             .store_uint(1, 1)
@@ -225,9 +310,10 @@ impure inline {
     }
 
 
-    if (op == 15){ ;;withdraw rewards
-        slice master_tston_address = in_msg_body~load_msg_addr(); 
-        slice user_tston_address = in_msg_body~load_msg_addr(); 
+    if (op == 15) {
+        ;;withdraw rewards
+        slice master_tston_address = in_msg_body~load_msg_addr();
+        slice user_tston_address = in_msg_body~load_msg_addr();
         int interest = in_msg_body~load_coins();
         ;; to_address - jetton user adress
         tston_total_balance -= interest;
@@ -241,7 +327,7 @@ impure inline {
             .store_coins(0)
             .store_uint(0, 1)
             .end_cell();
-       var msg = begin_cell()
+        var msg = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(master_tston_address)
             .store_coins(50000000) ;; what is that? 
@@ -249,7 +335,7 @@ impure inline {
             .store_ref(msg_body)
             .end_cell();
         send_raw_message(msg, 1); ;; revert on errors
-        save_data(admin_address,tston_total_balance,yt_total_balance,pt_total_balance,maturity,pool_value_in_ton,index_tston_ton);
+        save_data(admin_address, tston_total_balance, yt_total_balance, pt_total_balance, maturity, pool_value_in_ton, index_tston_ton);
     }
 
     if (op == op::transfer_notification()) {
@@ -276,13 +362,13 @@ impure inline {
                 .store_slice(my_address())
                 .store_slice(my_address())
                 .store_coins(0)
-                .store_uint(0,1)
-                .store_uint(index_tston_ton,32)
-            .end_cell())
-        .end_cell();
+                .store_uint(0, 1)
+                .store_uint(index_tston_ton, 32)
+                .end_cell())
+            .end_cell();
         var msg_yt = begin_cell()
             .store_uint(0x18, 6)
-            .store_slice(yt_address) 
+            .store_slice(yt_address)
             .store_coins(10000000) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_yt)
@@ -301,13 +387,13 @@ impure inline {
                 .store_slice(my_address())
                 .store_slice(my_address())
                 .store_coins(0)
-                .store_uint(0,1)
-                .store_uint(index_tston_ton,32)
-            .end_cell())
-        .end_cell();
+                .store_uint(0, 1)
+                .store_uint(index_tston_ton, 32)
+                .end_cell())
+            .end_cell();
         var msg_pt = begin_cell()
             .store_uint(0x18, 6)
-            .store_slice(pt_address) 
+            .store_slice(pt_address)
             .store_coins(10000000) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_pt)
@@ -318,11 +404,11 @@ impure inline {
     ;; throw(0xffff);
 }
 
-int get_index () method_id {
-    (_,_,_,_,_,_, int index_tston_ton) = load_data();
+int get_index() method_id {
+    (_, _, _, _, _, _, int index_tston_ton) = load_data();
     return index_tston_ton;
 }
 
-;; int get_status() method_id {
-;;     return 0;
-;; }
+int get_status() method_id {
+    return 0;
+}

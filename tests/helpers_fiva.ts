@@ -134,14 +134,14 @@ export async function deployJettonWithWalletFiva(
         success: true,
     });
 
+    expect(await jettonMinter.getTotalsupply()).toEqual(jettonsAmount);
+
     const creator_wallet_addr = await jettonMinter.getWalletAddress(sendTokensToAddr);
     const walletJetton = blockchain.openContract(JettonWallet.createFromAddress(creator_wallet_addr));
     return {
         tstonMinter: jettonMinter,
         tstonWallet: walletJetton,
     };
-
-
 }
 
 export async function mintTokens (

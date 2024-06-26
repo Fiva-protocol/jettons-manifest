@@ -1,3 +1,5 @@
 int op::change_index() asm "0xf8a7df5 PUSHINT";
 int op::transfer() asm "0xf8a7ea5 PUSHINT";
+int op::transfer_notification() asm "0x7362d09c PUSHINT";
+
 

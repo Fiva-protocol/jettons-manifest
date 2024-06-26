@@ -15,7 +15,7 @@ import {
     deployJettonWithWallet,
     setupMasterOrder,
 } from './helpers';
-import { setupMasterSYSAndYTJetton, assertJettonBalanceEqualFiva, deployJettonWithWalletFiva } from './helpers_fiva';
+import { setupMasterSYSAndYTJetton, assertJettonBalanceEqualFiva, deployJettonWithWalletFiva, mintTokens } from './helpers_fiva';
 import { MasterSYS } from '../wrappers/MasterSYS';
 import exp from 'constants';
 
@@ -63,6 +63,8 @@ describe('MasterSYS', () => {
             masterSYS.address,
             1000n,
         );
+
+        
     });
 
     it('should deploy', async () => {
@@ -94,8 +96,7 @@ describe('MasterSYS', () => {
 
     it('mint YT tokens and Recieve Index and Interest from The contract', async () => {
         
-        console.log('YT Address',jettonMinterYT.address);
-        console.log('PT Address',jettonMinterPT.address);
+
         const result = await masterSYS.sendMintReq(sender.getSender() , {
             YTAddress: jettonMinterYT.address,
             PTAddress: jettonMinterPT.address, //ADD PT ADDRESS
@@ -256,4 +257,98 @@ describe('MasterSYS', () => {
     //     });
         
     // }); 
+
+    it('mint YT tokens and Recieve Index and Interest from The contract', async () => {
+        
+        
+        let jetton1: {
+            jettonMinter: SandboxContract<JettonMinter>;
+            jettonWallet: SandboxContract<JettonWallet>;
+        };
+
+        jetton1 = await deployJettonWithWallet(
+            blockchain,
+            deployer,
+            jettonMinterCode,
+            jettonWalletCode,
+            sender.address,
+            100n,
+        );
+        
+        await jetton1.jettonMinter.sendMint(deployer.getSender(), {
+            toAddress: sender.address,
+            jettonAmount: 100n,
+            amount: toNano('0.05'),
+            queryId: Date.now(),
+            value: toNano('0.2'),
+        });
+        console.log('Wallet Address',await jetton1.jettonWallet.getJettonBalance());
+
+        const userTstonAddress = await tston.tstonMinter.getWalletAddress(sender.address);
+        const masterTstonAddress = await tston.tstonMinter.getWalletAddress(masterSYS.address);
+        
+        const walletTston = blockchain.openContract(JettonWallet.createFromAddress(userTstonAddress));
+
+        console.log('Wallet Address',walletTston.address);
+        console.log('User Addres',sender.address);
+        
+        // const result = await mintTokens(
+        //     sender,
+        //     masterSYS,
+        //     walletTston,
+        //     toNano('0.2'),
+        //     Date.now(),
+        //     jettonMinterYT.address,
+        //     jettonMinterPT.address,
+        //     sender.address,
+        // );
+        console.log("Balance of user", await jetton1.jettonWallet.getJettonBalance())
+        const result = await jetton1.jettonWallet.sendTransfer(sender.getSender(), {
+            value: toNano('0.3'),
+            toAddress: masterSYS.address,
+            queryId: Date.now(),
+            jettonAmount: 50n,
+            fwdAmount: toNano('0.2'),
+            fwdPayload: beginCell()
+                .storeUint(0xc1c6ebf9, 32) // op code - create_order
+                .storeUint(Date.now(), 64) // query id
+                .storeAddress(jettonMinterYT.address)
+                .storeAddress( jettonMinterPT.address)
+                .storeAddress(sender.address)
+                .storeCoins(toNano('0.2'))
+                .storeCoins(50n)
+                .endCell(),
+        }); 
+        // User -> User's Tston Wallet
+        expect(result.transactions).toHaveTransaction({
+            from: sender.address,
+            to: walletTston.address,
+            deploy: false,
+            success: true,
+        });
+        // User's Tston Wallet -> Master's Tston Wallet
+        const tston_wallet_master = await tston.tstonMinter.getWalletAddress(masterSYS.address);
+        expect(result.transactions).toHaveTransaction({
+            from: walletTston.address,
+            to: tston_wallet_master,
+            deploy: false,
+            success: true,
+        });
+
+        // Master's Tston Wallet -> Minter
+        expect(result.transactions).toHaveTransaction({
+            from: tston_wallet_master,
+            to: masterSYS.address,
+            deploy: false,
+            success: true,
+        });
+
+        const sendTokensToAddr = await jettonMinterYT.getWalletAddress(sender.address);
+        await assertJettonBalanceEqual(blockchain, sendTokensToAddr, 1000n);
+
+        const sendTokensToAddrPT = await jettonMinterPT.getWalletAddress(sender.address);
+        await assertJettonBalanceEqual(blockchain, sendTokensToAddrPT, 1000n);
+
+    });
+
 });

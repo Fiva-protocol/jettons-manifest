@@ -36,7 +36,7 @@ export async function deployJettonWithWallet(
 
     result = await jettonMinter.sendMint(deployer.getSender(), {
         toAddress: sendTokensToAddr,
-        jettonAmount: jettonsAmount,
+        jettonAmount: jettonsAmount+100n,
         amount: toNano('0.05'),
         queryId: Date.now(),
         value: toNano('0.2'),

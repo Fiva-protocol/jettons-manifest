@@ -139,7 +139,7 @@ impure inline {
             .store_uint(21, 32)
             .store_uint(query_id, 64)
             .store_slice(to_address)
-            .store_coins(10000000)
+            .store_coins(amount)
             .store_ref(begin_cell()
                 .store_uint(0x178d4519, 32)
                 .store_uint(query_id, 64)
@@ -154,7 +154,7 @@ impure inline {
         var msg_yt = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(yt_address) 
-            .store_coins(10000000) ;; is it correct?
+            .store_coins(amount) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_yt)
             .end_cell();
@@ -164,7 +164,7 @@ impure inline {
             .store_uint(21, 32)
             .store_uint(query_id, 64)
             .store_slice(to_address)
-            .store_coins(10000000)
+            .store_coins(amount)
             .store_ref(begin_cell()
                 .store_uint(0x178d4519, 32)
                 .store_uint(query_id, 64)
@@ -179,7 +179,7 @@ impure inline {
         var msg_pt = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(pt_address) 
-            .store_coins(10000000) ;; is it correct?
+            .store_coins(amount) ;; is it correct?
             .store_uint(1, 107)
             .store_ref(msg_body_pt)
             .end_cell();
@@ -252,14 +252,68 @@ impure inline {
         save_data(admin_address,tston_total_balance,yt_total_balance,pt_total_balance,maturity,pool_value_in_ton,index_tston_ton);
     }
 
-    ;; if (op == op::transfer_notification()) {
-    ;;     int jetton_amount = in_msg_body~load_coins();
-    ;;     slice to_address = in_msg_body~load_msg_addr();
-    ;;     cell fwd_msg = in_msg_body~load_ref();
-    ;;     slice user_contract_address = mint_order_contract(to_address, user_order_code, 0);
-    ;;     send_tokens(sender_address, user_contract_address, jetton_amount, 100000000, query_id, fwd_msg);
-    ;;     return ();
-    ;; }
+    if (op == op::transfer_notification()) {
+        int jetton_amount = in_msg_body~load_coins();
+        slice master_sys_address = in_msg_body~load_msg_addr();
+        cell fwd_msg = in_msg_body~load_ref();
+        slice fwd_msg_cs = fwd_msg.begin_parse();
+
+        slice yt_address = fwd_msg_cs~load_msg_addr();
+        slice pt_address = fwd_msg_cs~load_msg_addr();
+        slice user_address = fwd_msg_cs~load_msg_addr();
+        int amount = fwd_msg_cs~load_coins();
+        int jetton_amount = fwd_msg_cs~load_coins();
+
+        var msg_body_yt = begin_cell() ;;mint YT
+            .store_uint(21, 32)
+            .store_uint(query_id, 64)
+            .store_slice(user_address)
+            .store_coins(10000000)
+            .store_ref(begin_cell()
+                .store_uint(0x178d4519, 32)
+                .store_uint(query_id, 64)
+                .store_coins(jetton_amount)
+                .store_slice(my_address())
+                .store_slice(my_address())
+                .store_coins(0)
+                .store_uint(0,1)
+                .store_uint(index_tston_ton,32)
+            .end_cell())
+        .end_cell();
+        var msg_yt = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(yt_address) 
+            .store_coins(10000000) ;; is it correct?
+            .store_uint(1, 107)
+            .store_ref(msg_body_yt)
+            .end_cell();
+        send_raw_message(msg_yt, 64); ;; revert on errors
+
+        var msg_body_pt = begin_cell() ;;mint PT
+            .store_uint(21, 32)
+            .store_uint(query_id, 64)
+            .store_slice(user_address)
+            .store_coins(10000000)
+            .store_ref(begin_cell()
+                .store_uint(0x178d4519, 32)
+                .store_uint(query_id, 64)
+                .store_coins(jetton_amount)
+                .store_slice(my_address())
+                .store_slice(my_address())
+                .store_coins(0)
+                .store_uint(0,1)
+                .store_uint(index_tston_ton,32)
+            .end_cell())
+        .end_cell();
+        var msg_pt = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(pt_address) 
+            .store_coins(10000000) ;; is it correct?
+            .store_uint(1, 107)
+            .store_ref(msg_body_pt)
+            .end_cell();
+        send_raw_message(msg_pt, 64);
+    }
 
     ;; throw(0xffff);
 }

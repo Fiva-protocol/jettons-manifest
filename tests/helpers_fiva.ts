@@ -140,4 +140,38 @@ export async function deployJettonWithWalletFiva(
         tstonMinter: jettonMinter,
         tstonWallet: walletJetton,
     };
+
+
+}
+
+export async function mintTokens (
+    creator: SandboxContract<TreasuryContract>,
+    masterSYS: SandboxContract<MasterSYS>,
+    UserTstonWallet: SandboxContract<JettonWallet>,
+    jettonAmount: bigint,
+    queryId: number,
+    YTAddress:Address,
+    PTAddress:Address,
+    toAddress:Address,
+
+) {
+
+    const result = await UserTstonWallet.sendTransfer(creator.getSender(), {
+        value: toNano('0.3'),
+        toAddress: masterSYS.address,
+        queryId: 1,
+        jettonAmount: jettonAmount,
+        fwdAmount: toNano('0.2'),
+        fwdPayload: beginCell()
+            .storeUint(0xc1c6ebf9, 32) // op code - create_order
+            .storeUint(111, 64) // query id
+            .storeAddress(YTAddress)
+            .storeAddress(PTAddress)
+            .storeAddress(toAddress)
+            .storeCoins(toNano('0.2'))
+            .storeCoins(jettonAmount)
+            .endCell(),
+    });
+
+    return result;
 }

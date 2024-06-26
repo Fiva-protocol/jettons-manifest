@@ -136,6 +136,7 @@ async sendClaimInterest(
 
     return result;
 }
+
     async getIndex(provider: ContractProvider) {
         const result = await provider.get('get_index',[]);
         return result.stack.readNumber();

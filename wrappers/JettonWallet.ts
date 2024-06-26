@@ -1,25 +1,53 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Contract,
+    contractAddress,
+    ContractProvider,
+    Sender,
+    SendMode,
+    TupleReader
+} from '@ton/core';
 
 export type JettonWalletConfig = {
-    ownerAddress: Address;
-    minterAddress: Address;
-    walletCode: Cell;
+    balance: bigint,
+    ownerAddress: Address,
+    masterAddress: Address,
+    walletCode: Cell,
+    index: bigint,
+    interest: bigint
 };
+
+export type JettonData = {
+    balance: bigint,
+    ownerAddress: Address,
+    masterAddress: Address,
+    walletCode: Cell,
+};
+
+export type JettonInterestData = {
+    index: bigint,
+    interest: bigint
+}
 
 export function jettonWalletConfigToCell(config: JettonWalletConfig): Cell {
     return beginCell()
         .storeCoins(0)
         .storeAddress(config.ownerAddress)
-        .storeAddress(config.minterAddress)
+        .storeAddress(config.masterAddress)
         .storeRef(config.walletCode)
+        .storeUint(config.index, 32)
+        .storeCoins(config.interest)
         .endCell();
 }
 
 export class JettonWallet implements Contract {
     constructor(
         readonly address: Address,
-        readonly init?: { code: Cell; data: Cell },
-    ) {}
+        readonly init?: { code: Cell; data: Cell }
+    ) {
+    }
 
     static createFromAddress(address: Address) {
         return new JettonWallet(address);
@@ -35,7 +63,7 @@ export class JettonWallet implements Contract {
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell().endCell(),
+            body: beginCell().endCell()
         });
     }
 
@@ -49,7 +77,7 @@ export class JettonWallet implements Contract {
             jettonAmount: bigint;
             fwdAmount: bigint;
             fwdPayload: Cell;
-        },
+        }
     ) {
         await provider.internal(via, {
             value: opts.value,
@@ -64,7 +92,7 @@ export class JettonWallet implements Contract {
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
                 .storeRef(opts.fwdPayload)
-                .endCell(),
+                .endCell()
         });
     }
 
@@ -75,7 +103,7 @@ export class JettonWallet implements Contract {
             value: bigint;
             queryId: number;
             jettonAmount: bigint;
-        },
+        }
     ) {
         await provider.internal(via, {
             value: opts.value,
@@ -86,20 +114,8 @@ export class JettonWallet implements Contract {
                 .storeCoins(opts.jettonAmount)
                 .storeAddress(via.address)
                 .storeUint(0, 1)
-                .endCell(),
+                .endCell()
         });
-    }
-
-    async getWalletData(provider: ContractProvider) {
-        let { stack } = await provider.get('get_wallet_data', []);
-        return {
-            balance: stack.readBigNumber(),
-            owner: stack.readAddress(),
-            minter: stack.readAddress(),
-            wallet_code: stack.readCell(),
-            index: stack.readNumber(),
-            interest: stack.readBigNumber(),
-        };
     }
 
     async getJettonBalance(provider: ContractProvider) {
@@ -109,5 +125,23 @@ export class JettonWallet implements Contract {
         }
         let res = await provider.get('get_wallet_data', []);
         return res.stack.readBigNumber();
+    }
+
+    async getWalletData(provider: ContractProvider): Promise<JettonData> {
+        const result = await provider.get('get_wallet_data', []);
+        return {
+            balance: result.stack.readBigNumber(),
+            ownerAddress: result.stack.readAddress(),
+            masterAddress: result.stack.readAddress(),
+            walletCode: result.stack.readCell()
+        };
+    }
+
+    async getInterestData(provider: ContractProvider): Promise<JettonInterestData> {
+        const result = await provider.get('get_interest_wallet_data', []);
+        return {
+            index: result.stack.readBigNumber(),
+            interest: result.stack.readBigNumber()
+        };
     }
 }

@@ -1,10 +1,15 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
-import { TupleItemSlice } from '@ton/core/dist/tuple/tuple';
 
 export type JettonMinterConfig = {
     adminAddress: Address;
     content: Cell;
     jettonWalletCode: Cell;
+    interestData: InterestData;
+};
+
+export type InterestData = {
+    index: bigint;
+    interest: bigint;
 };
 
 export function jettonMinterConfigToCell(config: JettonMinterConfig): Cell {
@@ -13,14 +18,19 @@ export function jettonMinterConfigToCell(config: JettonMinterConfig): Cell {
         .storeAddress(config.adminAddress)
         .storeRef(config.content)
         .storeRef(config.jettonWalletCode)
+        .storeRef(beginCell()
+            .storeUint(config.interestData.index, 32)
+            .storeCoins(config.interestData.interest)
+            .endCell())
         .endCell();
 }
 
 export class JettonMinter implements Contract {
     constructor(
         readonly address: Address,
-        readonly init?: { code: Cell; data: Cell },
-    ) {}
+        readonly init?: { code: Cell; data: Cell }
+    ) {
+    }
 
     static createFromAddress(address: Address) {
         return new JettonMinter(address);
@@ -36,7 +46,7 @@ export class JettonMinter implements Contract {
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell().endCell(),
+            body: beginCell().endCell()
         });
     }
 
@@ -49,7 +59,7 @@ export class JettonMinter implements Contract {
             amount: bigint;
             queryId: number;
             value: bigint;
-        },
+        }
     ) {
         await provider.internal(via, {
             value: opts.value,
@@ -68,25 +78,46 @@ export class JettonMinter implements Contract {
                         .storeAddress(this.address)
                         .storeCoins(0)
                         .storeUint(0, 1)
-                        .endCell(),
+                        .endCell()
                 )
-                .endCell(),
+                .endCell()
         });
     }
 
     async getWalletAddress(provider: ContractProvider, address: Address): Promise<Address> {
-        const result = await provider.get('get_wallet_address', [
-            {
-                type: 'slice',
-                cell: beginCell().storeAddress(address).endCell(),
-            } as TupleItemSlice,
-        ]);
-
-        return result.stack.readAddress();
+        const res = await provider.get('get_wallet_address', [{
+            type: 'slice',
+            cell: beginCell().storeAddress(address).endCell()
+        }]);
+        return res.stack.readAddress();
     }
 
-    async getTotalsupply(provider: ContractProvider): Promise<bigint> {
-        const result = await provider.get('get_jetton_data', []);
-        return result.stack.readBigNumber();
+    async getJettonData(provider: ContractProvider) {
+        let res = await provider.get('get_jetton_data', []);
+        let totalSupply = res.stack.readBigNumber();
+        let isMintable = res.stack.readBoolean();
+        let adminAddress = res.stack.readAddress();
+        let content = res.stack.readCell();
+        let walletCode = res.stack.readCell();
+        return {
+            totalSupply,
+            isMintable,
+            adminAddress,
+            content,
+            walletCode
+        };
+    }
+
+    async getInterestData(provider: ContractProvider): Promise<InterestData> {
+        const result = await provider.get('get_interest_data', []);
+        return {
+            index: result.stack.readBigNumber(),
+            interest: result.stack.readBigNumber()
+        };
+    }
+
+    async getTotalSupply(provider: ContractProvider): Promise<bigint> {
+        let res = await this.getJettonData(provider);
+        return res.totalSupply;
     }
 }

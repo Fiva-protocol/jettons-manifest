@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Address, Cell, beginCell, toNano } from '@ton/core';
+import { Address, Cell, beginCell, toNano, address } from '@ton/core';
 import '@ton/test-utils';
 import { JettonMinter } from '../wrappers/JettonMinter';
 import { JettonWallet } from '../wrappers/JettonWallet';
@@ -12,7 +12,7 @@ export async function setupMasterSYSAndYTJetton(
     deployer: SandboxContract<TreasuryContract>,
     masterSYSCode: Cell,
     jettonMinterCode: Cell,
-    jettonWalletCode: Cell,
+    jettonWalletCode: Cell
 ) {
     const masterSYS = blockchain.openContract(
         MasterSYS.createFromConfig(
@@ -23,17 +23,17 @@ export async function setupMasterSYSAndYTJetton(
                 pt_total_balance: 0n,
                 maturity: 365n,
                 pool_value_in_ton: 0n,
-                index_tston_ton: 1000,
+                index_tston_ton: 1000
             },
-            masterSYSCode,
-        ),
+            masterSYSCode
+        )
     );
     let result = await masterSYS.sendDeploy(deployer.getSender(), toNano('0.5'));
     expect(result.transactions).toHaveTransaction({
         from: deployer.address,
         to: masterSYS.address,
         deploy: true,
-        success: true,
+        success: true
     });
 
     const randomSeed = Math.floor(Math.random() * 10000);
@@ -43,9 +43,13 @@ export async function setupMasterSYSAndYTJetton(
                 adminAddress: masterSYS.address,
                 content: beginCell().storeUint(randomSeed, 256).endCell(),
                 jettonWalletCode: jettonWalletCode,
+                interestData: {
+                    index: 0n,
+                    interest: 0n
+                }
             },
-            jettonMinterCode,
-        ),
+            jettonMinterCode
+        )
     );
     let result_jetton = await jettonMinterYT.sendDeploy(deployer.getSender(), toNano('0.05'));
 
@@ -53,7 +57,7 @@ export async function setupMasterSYSAndYTJetton(
         from: deployer.address,
         to: jettonMinterYT.address,
         deploy: true,
-        success: true,
+        success: true
     });
 
     //deploy pt token
@@ -65,9 +69,13 @@ export async function setupMasterSYSAndYTJetton(
                 adminAddress: masterSYS.address,
                 content: beginCell().storeUint(randomSeedpt, 256).endCell(),
                 jettonWalletCode: jettonWalletCode,
+                interestData: {
+                    index: 0n,
+                    interest: 0n
+                }
             },
-            jettonMinterCode,
-        ),
+            jettonMinterCode
+        )
     );
     let result_jetton_pt = await jettonMinterPT.sendDeploy(deployer.getSender(), toNano('0.05'));
 
@@ -75,16 +83,16 @@ export async function setupMasterSYSAndYTJetton(
         from: deployer.address,
         to: jettonMinterPT.address,
         deploy: true,
-        success: true,
+        success: true
     });
 
     return {
         masterSYS: masterSYS,
         jettonMinterYT: jettonMinterYT,
-        jettonMinterPT: jettonMinterPT,
-     };
+        jettonMinterPT: jettonMinterPT
+    };
 
-     
+
 }
 
 export async function assertJettonBalanceEqualFiva(blockchain: Blockchain, jettonAddress: Address, equalTo: bigint) {
@@ -98,7 +106,7 @@ export async function deployJettonWithWalletFiva(
     jettonMinterCode: Cell,
     jettonWalletCode: Cell,
     sendTokensToAddr: Address,
-    jettonsAmount: bigint,
+    jettonsAmount: bigint
 ) {
     const randomSeed = Math.floor(Math.random() * 10000);
     const jettonMinter = blockchain.openContract(
@@ -107,17 +115,22 @@ export async function deployJettonWithWalletFiva(
                 adminAddress: deployer.address,
                 content: beginCell().storeUint(randomSeed, 256).endCell(),
                 jettonWalletCode: jettonWalletCode,
+                interestData: {
+                    index: 0n,
+                    interest: 0n
+                }
             },
-            jettonMinterCode,
-        ),
+            jettonMinterCode
+        )
     );
+
     let result = await jettonMinter.sendDeploy(deployer.getSender(), toNano('0.05'));
 
     expect(result.transactions).toHaveTransaction({
         from: deployer.address,
         to: jettonMinter.address,
         deploy: true,
-        success: true,
+        success: true
     });
 
     result = await jettonMinter.sendMint(deployer.getSender(), {
@@ -125,35 +138,35 @@ export async function deployJettonWithWalletFiva(
         jettonAmount: jettonsAmount,
         amount: toNano('0.05'),
         queryId: Date.now(),
-        value: toNano('0.2'),
+        value: toNano('0.2')
     });
     expect(result.transactions).toHaveTransaction({
         from: deployer.address,
         to: jettonMinter.address,
         deploy: false,
-        success: true,
+        success: true
     });
 
-    expect(await jettonMinter.getTotalsupply()).toEqual(jettonsAmount);
+    expect(await jettonMinter.getTotalSupply()).toEqual(jettonsAmount);
 
     const creator_wallet_addr = await jettonMinter.getWalletAddress(sendTokensToAddr);
     const walletJetton = blockchain.openContract(JettonWallet.createFromAddress(creator_wallet_addr));
+    console.log(await walletJetton.getJettonBalance());
     return {
         tstonMinter: jettonMinter,
-        tstonWallet: walletJetton,
+        tstonWallet: walletJetton
     };
 }
 
-export async function mintTokens (
+export async function mintTokens(
     creator: SandboxContract<TreasuryContract>,
     masterSYS: SandboxContract<MasterSYS>,
     UserTstonWallet: SandboxContract<JettonWallet>,
     jettonAmount: bigint,
     queryId: number,
-    YTAddress:Address,
-    PTAddress:Address,
-    toAddress:Address,
-
+    YTAddress: Address,
+    PTAddress: Address,
+    toAddress: Address
 ) {
 
     const result = await UserTstonWallet.sendTransfer(creator.getSender(), {
@@ -170,7 +183,7 @@ export async function mintTokens (
             .storeAddress(toAddress)
             .storeCoins(toNano('0.2'))
             .storeCoins(jettonAmount)
-            .endCell(),
+            .endCell()
     });
 
     return result;

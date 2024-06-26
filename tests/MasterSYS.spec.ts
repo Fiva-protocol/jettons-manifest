@@ -47,6 +47,10 @@ describe('MasterSYS', () => {
         tstonMinter: SandboxContract<JettonMinter>;
         tstonWallet: SandboxContract<JettonWallet>;
     };
+    let tsTON: {
+        tstonMinter: SandboxContract<JettonMinter>;
+        tstonWallet: SandboxContract<JettonWallet>;
+    };
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
@@ -69,9 +73,17 @@ describe('MasterSYS', () => {
             jettonMinterCode,
             jettonWalletCode,
             masterSYS.address,
-            1000n,
+            1000n
         );
 
+        const tsTON = await deployJettonWithWalletFiva( //create a dummy tston jetton and minth for master SYS 1000 tokens
+            blockchain,
+            deployer,
+            jettonMinterCode,
+            jettonWalletCode,
+            sender.address,
+            1000n
+        );
     });
 
     it('should deploy', async () => {
@@ -102,14 +114,6 @@ describe('MasterSYS', () => {
     });
 
     it('should supply tsTON and receive PT and YT', async () => {
-        const tsTON = await deployJettonWithWalletFiva( //create a dummy tston jetton and minth for master SYS 1000 tokens
-            blockchain,
-            deployer,
-            jettonMinterCode,
-            jettonWalletCode,
-            sender.address,
-            1000n
-        );
 
         const amount = 101n;
 

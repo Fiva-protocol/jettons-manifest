@@ -1,7 +1,0 @@
-node_modules
-temp
-build
-dist
-.DS_Store
-.idea
-.env

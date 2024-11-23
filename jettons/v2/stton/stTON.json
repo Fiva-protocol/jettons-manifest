@@ -1,6 +1,6 @@
 {
   "name": "stTON",
   "symbol": "stTON",
-  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/stton/icon.svg",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/stton/icon.ico",
   "description": "stTON jetton on testnet by FIVA protocol"
 }

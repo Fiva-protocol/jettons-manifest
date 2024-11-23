@@ -1,6 +1,6 @@
 {
-  "name": "LP SY-PT(stTON)",
+  "name": "LP SY-PT(stTON) FIVA",
   "symbol": "stLP",
-  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/stton/icon.svg",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/stton/icon.ico",
   "description": "LP for SY-PT(stTON) jetton on testnet by FIVA protocol"
 }

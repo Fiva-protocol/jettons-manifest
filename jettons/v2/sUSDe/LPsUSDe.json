@@ -1,0 +1,6 @@
+{
+  "name": "LP SY-PT(sUSDe) FIVA",
+  "symbol": "sUSDeLP",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/sUSDe/icon.ico",
+  "description": "LP for SY-PT(sUSDe) jetton on testnet by FIVA protocol"
+}

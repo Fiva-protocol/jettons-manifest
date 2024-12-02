@@ -1,6 +1,6 @@
 {
   "name": "PT sUSDe",
   "symbol": "sUSDePT",
-  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/sUSDe/icon.ico",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/sUSDe/icon.png",
   "description": "PT sUSDe jetton on testnet by FIVA protocol"
 }

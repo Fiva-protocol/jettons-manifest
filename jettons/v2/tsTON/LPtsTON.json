@@ -1,6 +1,6 @@
 {
   "name": "LP SY-PT(tsTON)",
   "symbol": "tsLP",
-  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/icon.png",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/tsTON/icon.png",
   "description": "LP for SY-PT(tsTON) jetton on testnet by FIVA protocol"
 }

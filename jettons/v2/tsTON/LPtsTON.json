@@ -1,6 +1,6 @@
 {
-  "name": "LP SY-PT(tsTON)",
-  "symbol": "tsLP",
-  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/tsTON/icon.png",
-  "description": "LP for SY-PT(tsTON) jetton on testnet by FIVA protocol"
+  "name": "LP tsTON (Jun-25)",
+  "symbol": "LP tsTON",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v2/tsTON/LP.png",
+  "description": "LP token for the FIVA Tonstakers Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, underlying yield, and avoiding impermanent loss if held to maturity."
 }

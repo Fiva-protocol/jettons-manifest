@@ -1,6 +1,6 @@
 {
     "name": "PT eUSDT (30-Jun-2025)",
     "symbol": "PT eUSDT",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/evaa/USDT/icon.png",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/evaa/USDT/EVAA_USDT_PT.png",
     "description": "PT Evaa USDT offers a fixed yield and represents the principal invested in USDT through yield tokenization by the FIVA protocol."
 }

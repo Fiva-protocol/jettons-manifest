@@ -1,6 +1,6 @@
 {
     "name": "SY eUSDT (30-Jun-2025)",
     "symbol": "SY eUSDT",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/evaa/USDT/icon.png",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/evaa/USDT/EVAA_USDT_SY.png",
     "description": "SY Evaa USDT is a wrapped version of evaa USDT used within FIVA, enabling seamless integration with our yield tokenization protocol "
 }

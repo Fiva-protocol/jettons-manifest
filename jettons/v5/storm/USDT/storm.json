@@ -1,6 +1,6 @@
 {
-    "name": "STORM",
-    "symbol": "STORM",
+    "name": "STORM USDT SLP",
+    "symbol": "USDT SLP",
     "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/USDT/icon.webp",
-    "description": "Storm testnet jetton."
+    "description": "Storm USDT SLP testnet jetton."
 }

@@ -1,6 +1,6 @@
 {
-    "name": "PT USDT-SLP (01-Jun-2025)",
-    "symbol": "PT USDT-SLP (01-Jun-2025)",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/USDT/Storm_USDT_PT.png",
-    "description": "PT USDT-SLP offers a fixed yield and represents the principal invested in Storm's USDT vault through yield tokenization by FIVA, redeemable 1:1 for USDT-SLP upon maturity in June 2025."
+    "name": "PT NOT-SLP (01-Jun-2025)",
+    "symbol": "PT NOT-SLP (01-Jun-2025)",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/NOT/Storm_NOT_PT.png",
+    "description": "PT NOT-SLP offers a fixed yield and represents the principal invested in Storm's NOT vault through yield tokenization by FIVA, redeemable 1:1 for NOT-SLP upon maturity in June 2025."
 }

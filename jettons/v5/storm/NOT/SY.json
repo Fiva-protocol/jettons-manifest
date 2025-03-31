@@ -1,6 +1,6 @@
 {
-    "name": "SY USDT-SLP",
-    "symbol": "SY USDT-SLP",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/USDT/Storm_USDT_SY.png",
-    "description": "SY USDT-SLP is a wrapped version of Storm's USDT LP tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with USDT SLP position."
+    "name": "SY NOT-SLP",
+    "symbol": "SY NOT-SLP",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/NOT/Storm_USDT_SY.png",
+    "description": "SY NOT-SLP is a wrapped version of Storm's NOT LP tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with NOT SLP position."
 }

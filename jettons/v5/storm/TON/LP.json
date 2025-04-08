@@ -1,6 +1,6 @@
 {
-    "name": "LP TON-SLP (01-Jun-2025)",
-    "symbol": "LP TON-SLP (01-Jun-2025)",
+    "name": "LP TON-SLP (01Jun2025)",
+    "symbol": "LP TON-SLP (01Jun2025)",
     "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v5/storm/TON/Storm_LP.png",
     "description": "LP token for the FIVA Storm TON Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, Storm points, underlying yield, and avoiding impermanent loss if held to maturity."
 }

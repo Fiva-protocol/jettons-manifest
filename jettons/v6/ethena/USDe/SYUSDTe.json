@@ -1,0 +1,6 @@
+{
+    "name": "SY USDe (01-Sep-2025)",
+    "symbol": "SY USDe",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/ethena/USDe/USDe_SY.png",
+    "description": "SY USDe is a wrapped version of Ethena's USDe tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with USDe position."
+}

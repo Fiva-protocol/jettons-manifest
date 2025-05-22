@@ -1,5 +1,5 @@
 {
-    "name": "LP USDe (01-Sep-2025)",
+    "name": "LP USDe (01Sep2025)",
     "symbol": "LP USDe",
     "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/ethena/USDe/USDe_LP.png",
     "description": "LP token for the FIVA Ethena USDe Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, Ethena points, underlying yield, and avoiding impermanent loss if held to maturity."

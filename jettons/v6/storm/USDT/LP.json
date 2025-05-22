@@ -1,0 +1,6 @@
+{
+    "name": "LP USDT-SLP (01Sep2025)",
+    "symbol": "LP USDT-SLP",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/storm/USDT/Storm_LP.png",
+    "description": "LP token for the FIVA Storm USDT Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, Storm points, underlying yield, and avoiding impermanent loss if held to maturity."
+}

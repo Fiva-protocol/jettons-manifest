@@ -1,0 +1,6 @@
+{
+  "name": "tsTON testnet",
+  "symbol": "tsTON",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/tsTON/SY.png",
+  "description": "Testnet version of tsTon created specifically for testing integration with FIVA protocol."
+}

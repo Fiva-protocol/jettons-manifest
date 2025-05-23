@@ -1,0 +1,6 @@
+{
+    "name": "SY tsUSDe (01Sep2025)",
+    "symbol": "SY tsUSDe",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/ethena/tsUSDe/tsUSDe_SY.png",
+    "description": "SY tsUSDe is a wrapped version of Ethena's tsUSDe tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with tsUSDe position."
+}

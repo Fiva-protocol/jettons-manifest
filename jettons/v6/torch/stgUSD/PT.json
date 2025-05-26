@@ -1,0 +1,6 @@
+{
+    "name": "PT stgUSD (01Sep2025)",
+    "symbol": "PT stgUSD",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v6/torch/stgUSD/PT.png",
+    "description": "PT stgUSD offers a fixed yield and represents the principal invested in Torch Finance's staked tgUSD through yield tokenization by FIVA, redeemable 1:1 for stgUSD upon maturity on August 31, 2025."
+}

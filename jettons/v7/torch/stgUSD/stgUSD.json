@@ -1,0 +1,7 @@
+{
+    "name": "test Staked Telegram USD",
+    "symbol": "test stgUSD",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/torch/stgUSD/PT.png",
+    "description": "[TEST] A yield-bearing token earned by staking tgUSD",
+    "decimals": "6"
+}

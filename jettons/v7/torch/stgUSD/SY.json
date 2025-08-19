@@ -1,0 +1,6 @@
+{
+    "name": "SY stgUSD (18Dec2025)",
+    "symbol": "SY stgUSD",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/torch/stgUSD/SY.png",
+    "description": "SY stgUSD is a wrapped version of Torch Finance's staked tgUSD tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with stgUSD position."
+}

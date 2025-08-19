@@ -1,0 +1,6 @@
+{
+    "name": "SY TON-SLP (18Dec2025)",
+    "symbol": "SY TON-SLP",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/storm/TON/Storm_TON_SY.png",
+    "description": "SY TON-SLP is a wrapped version of Storm's TON LP tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with TON SLP position."
+}

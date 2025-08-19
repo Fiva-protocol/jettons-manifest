@@ -1,0 +1,7 @@
+{
+    "name": "tsUSDe testnet",
+    "symbol": "tsUSDe",
+    "decimals": "6",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/ethena/tsUSDe/tsUSDe_PT.png",
+    "description": "Ethena tsUSDe testnet jetton."
+}

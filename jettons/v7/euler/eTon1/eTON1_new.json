@@ -1,0 +1,7 @@
+{
+    "name": "eTON-1 testnet",
+    "symbol": "eTON-1",
+    "decimals": "9",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTon1/eTON1_PT.svg",
+    "description": "Euler eTON-1 testnet jetton."
+}

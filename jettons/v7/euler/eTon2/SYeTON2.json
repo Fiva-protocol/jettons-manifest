@@ -1,0 +1,6 @@
+{
+    "name": "SY eTON-2 (18Dec2025)",
+    "symbol": "SY eTON-2",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTON2/eTON2_SY.svg",
+    "description": "SY eTON-2 is a wrapped version of Eulers's eTON-2 tokens used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with eTON-2 position."
+}

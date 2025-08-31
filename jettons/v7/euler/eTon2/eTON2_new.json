@@ -2,6 +2,6 @@
     "name": "eTON-2 testnet",
     "symbol": "eTON-2",
     "decimals": "9",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTON2/eTON2_PT.svg",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTon2/eTON2_PT.svg",
     "description": "Euler eTON-2 testnet jetton."
 }

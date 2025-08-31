@@ -1,6 +1,6 @@
 {
     "name": "PT eTON-2 (18Dec2025)",
     "symbol": "PT eTON-2",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTON2/eTON2_PT.svg",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTon2/eTON2_PT.svg",
     "description": "PT eTON-2 offers a fixed yield and represents the principal invested in Euler's eTON-2 through yield tokenization by FIVA, redeemable 1:1 for eTON-2 upon maturity in December 2025."
 }

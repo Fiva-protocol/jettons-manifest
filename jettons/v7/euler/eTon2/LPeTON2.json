@@ -1,6 +1,6 @@
 {
     "name": "LP eTON-2 (18Dec2025)",
     "symbol": "LP eTON-2",
-    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTON2/eTON2_LP.svg",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v7/euler/eTon2/eTON2_LP.svg",
     "description": "LP token for the FIVA Euler eTON-2 Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, Euler rewards, underlying yield, and avoiding impermanent loss if held to maturity."
 }

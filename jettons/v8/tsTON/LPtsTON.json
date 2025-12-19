@@ -1,0 +1,6 @@
+{
+  "name": "LP tsTON (30Jun2026)",
+  "symbol": "LP tsTON",
+  "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v8/tsTON/LP.png",
+  "description": "LP token for the FIVA Tonstakers Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, underlying yield, and avoiding impermanent loss if held to maturity."
+}

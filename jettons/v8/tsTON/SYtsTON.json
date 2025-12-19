@@ -1,0 +1,6 @@
+{
+    "name": "SY tsTON (30Jun2026)",
+    "symbol": "SY tsTON",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v8/tsTON/SY.png",
+    "description": "SY tsTON is a wrapped version of tsTON used within FIVA, enabling seamless integration with our yield tokenization protocol while maintaining a 1:1 value with tsTON."
+}

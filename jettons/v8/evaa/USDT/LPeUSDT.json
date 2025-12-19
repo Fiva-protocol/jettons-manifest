@@ -1,0 +1,6 @@
+{
+    "name": "LP eUSDT (30Jun2026)",
+    "symbol": "LP eUSDT",
+    "image": "https://raw.githubusercontent.com/Fiva-protocol/jettons-manifest/refs/heads/main/jettons/v8/evaa/USDT/EVAA_LP.png",
+    "description": "LP token for the FIVA Evaa USDT Pool, representing liquidity provision for FIVA AMM until maturity while earning trading fees, underlying yield, and avoiding impermanent loss if held to maturity."
+}
